@@ -1,0 +1,6 @@
+id,product,question,expected_topic,answerable,expected_source,verdict,notes
+1,TP-Link Archer AX21,"How do I reset the router to factory settings?",factory reset,yes,official manual or support FAQ,,
+2,TP-Link Archer AX21,"my wifi keeps droppin what should i check",connection troubleshooting,yes,official support FAQ,,Bitext-style typo
+3,Example product,"Does it support satellite messaging?",unsupported feature,no,,,
+4,TP-Link Archer AX21,"What about its warranty?",follow-up context,yes,official warranty/support source,,Ask after a product-specific turn
+
