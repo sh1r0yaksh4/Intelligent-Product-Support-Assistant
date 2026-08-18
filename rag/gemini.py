@@ -8,7 +8,7 @@ from google import genai
 from google.genai import types
 
 from .config import EMBEDDING_DIMENSIONS, EMBEDDING_MODEL, GENERATION_MODEL, SEARCH_MODEL
-from .models import Citation
+from .models import Citation, ProductEntity
 
 
 class GeminiUnavailable(RuntimeError):
@@ -70,19 +70,46 @@ def search_grounded_answer(prompt: str) -> tuple[str, list[Citation]]:
     return (getattr(interaction, "output_text", "") or "").strip(), citations
 
 
-def identify_product(message: str, previous_product: str | None = None) -> str | None:
-    """Best-effort extraction; an uncertain name never blocks research."""
-    prompt = f"""Extract the most specific consumer product name/model mentioned in this message.
-Return JSON only with one field named product_name. Use null when no product is identifiable.
-Previous active product: {previous_product or 'none'}
-Message: {message}"""
-    response = _client().models.generate_content(
-        model=GENERATION_MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0),
-    )
-    try:
-        return json.loads(response.text or "{}").get("product_name") or previous_product
-    except json.JSONDecodeError:
-        return previous_product
+def identify_product_structured(
+    message: str, previous_product: str | None = None, previous_version: str | None = None
+) -> ProductEntity:
+    """Extract structured product name, model, hardware version, and revision from message using Gemini JSON output."""
+    prompt = f"""Extract consumer product entity details mentioned in this customer message.
+Return JSON with EXACTLY these fields:
+- manufacturer: string (e.g. "TP-Link", "Sony", "Netgear", or "" if unknown)
+- product_name: string (e.g. "TP-Link Archer AX21", "Sony WH-1000XM5", or "" if unknown)
+- model: string (e.g. "AX21", "WH-1000XM5", or "" if unknown)
+- hardware_version: string (e.g. "V1", "V2", "v2.0", or "" if unknown)
+- revision: string (e.g. "Rev A", or "")
+- confidence: float between 0.0 and 1.0
 
+Previous active product: {previous_product or 'none'}
+Previous active hardware version: {previous_version or 'none'}
+Message: {message}"""
+
+    try:
+        response = _client().models.generate_content(
+            model=GENERATION_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
+        )
+        data = json.loads(response.text or "{}")
+        p_name = data.get("product_name") or previous_product or ""
+        h_ver = data.get("hardware_version") or previous_version or ""
+        return ProductEntity(
+            manufacturer=data.get("manufacturer") or "",
+            product_name=p_name,
+            model=data.get("model") or "",
+            hardware_version=h_ver,
+            revision=data.get("revision") or "",
+            confidence=float(data.get("confidence", 0.8)),
+        )
+    except Exception:
+        return ProductEntity(
+            manufacturer="",
+            product_name=previous_product or "",
+            model="",
+            hardware_version=previous_version or "",
+            revision="",
+            confidence=0.5,
+        )

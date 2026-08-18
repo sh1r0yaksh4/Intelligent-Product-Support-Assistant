@@ -33,4 +33,3 @@ def ensure_directories() -> None:
 def slugify(value: str) -> str:
     clean = "".join(char.lower() if char.isalnum() else "-" for char in value)
     return "-".join(part for part in clean.split("-") if part)[:80] or "general"
-
