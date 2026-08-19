@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 from .config import MIN_DOCUMENT_SIMILARITY, SUPPORT_URL, slugify
-from .gemini import generate_grounded_answer, identify_product_structured, search_grounded_answer
+from .gemini import (
+    assess_conversation,
+    generate_grounded_answer,
+    identify_product_structured,
+    search_grounded_answer,
+)
 from .models import ChatResult, Citation, ProductEntity, RetrievedChunk
 from .retriever import Retriever
 
@@ -62,30 +67,43 @@ class ProductAssistant:
     def answer(
         self,
         question: str,
-        history: list[dict[str, str]],
+        history: list[dict[str, str]] | None = None,
         active_product: str | None = None,
         active_version: str | None = None,
+        user_style: str | None = None,
     ) -> ChatResult:
-        # Step 1: Structured Product Entity Extraction
-        entity: ProductEntity = identify_product_structured(question, active_product, active_version)
-        product_name = entity.product_name or active_product
-        hardware_version = entity.hardware_version or active_version or ""
+        history_list = history or []
+
+        # Step 1: Assess conversation — clarify or answer?
+        assessment = assess_conversation(question, history_list, active_product, active_version)
+        if assessment.get("action") == "clarify" and assessment.get("clarification_question"):
+            return ChatResult(
+                answer=assessment["clarification_question"],
+                clarification_needed=True,
+                product_name=assessment.get("product_name") or active_product,
+                hardware_version=assessment.get("hardware_version") or active_version,
+            )
+
+        product_name = assessment.get("product_name") or active_product
+        hardware_version = assessment.get("hardware_version") or active_version or ""
         product_id = slugify(product_name or "general")
 
         # Step 2: Formulate query
-        retrieval_query = self._standalone_query(question, history, product_name, hardware_version)
+        retrieval_query = self._standalone_query(question, history_list, product_name, hardware_version)
 
         # Step 3: Local Document Vector Retrieval (Version-Aware)
         local_chunks = self.retriever.retrieve_documents(retrieval_query, product_id, hardware_version)
         memory_chunks = self.retriever.retrieve_approved_memory(retrieval_query, product_id, top_k=2)
 
+        style_instruction = f"\nUser style preference: {user_style}\n" if user_style else ""
+
         # Step 4: Relevance & Score Check
         if local_chunks and local_chunks[0].score >= MIN_DOCUMENT_SIMILARITY:
             prompt = f"""{SYSTEM_INSTRUCTIONS}
-
+{style_instruction}
 Product: {product_name or 'unknown'}
 Hardware Version: {hardware_version or 'unspecified'}
-Conversation context: {history[-4:]}
+Conversation context: {history_list[-4:]}
 
 Evidence:
 {_context(local_chunks, memory_chunks)}
@@ -105,6 +123,7 @@ Answer:"""
 
         # Step 5: Web Search Grounding Fallback
         research_prompt = f"""Research this product-support question using Google Search grounding.
+{style_instruction}
 Product: {product_name or 'not specified'}
 Hardware Version: {hardware_version or 'not specified'}
 Question: {question}

@@ -19,8 +19,8 @@ EMBEDDING_DIMENSIONS = 768
 TOP_K = 5
 MIN_DOCUMENT_SIMILARITY = float(os.getenv("MIN_DOCUMENT_SIMILARITY", "0.42"))
 
-GENERATION_MODEL = os.getenv("GEMINI_GENERATION_MODEL", "gemini-2.5-flash")
-SEARCH_MODEL = os.getenv("GEMINI_SEARCH_MODEL", "gemini-2.5-flash")
+GENERATION_MODEL = os.getenv("GEMINI_GENERATION_MODEL", "gemini-3.6-flash")
+SEARCH_MODEL = os.getenv("GEMINI_SEARCH_MODEL", "gemini-3.6-flash")
 EMBEDDING_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001")
 SUPPORT_URL = "https://www.google.com/search?q=official+manufacturer+support"
 

@@ -1,116 +1,175 @@
-# Intelligent Product Support Assistant 🔎
+# Intelligent Product Support Assistant
 
-A chat-first, zero-hallucination customer support assistant for consumer products built with **Python**, **Streamlit**, **Gemini (`google-genai` SDK)**, and **Chroma DB**.
-
----
-
-## 🎯 Core Operating Principles
-
-1. **DOCUMENT-FIRST:** Uploaded manuals, FAQs, and official support URLs are chunked, embedded with Gemini, and searched before consulting external sources.
-2. **VERSION-AWARE:** Extracts manufacturer, model, and hardware/revision version (e.g. Archer AX21 V1 vs V2) to prevent cross-version instruction mixing.
-3. **SOURCE-GROUNDED:** Answers are strictly synthesized from retrieved evidence with full source citations (title, section, page, URL).
-4. **WEB SEARCH FALLBACK:** When local documentation is missing or insufficient (similarity score $< 0.42$), Gemini Google Search Grounding researches official web sources.
-5. **SAFE ESCALATION:** If no verifiable source citation can be produced, the assistant explicitly declines to answer and provides official support links instead of fabricating steps.
-6. **APPROVED MEMORY:** Customer feedback ("Helpful") promotes verified Q&A interactions into an approved memory store in Chroma DB for secondary retrieval in future similar turns.
+A chat-first, grounded product support assistant designed for consumer hardware and software products. It combines multi-turn conversational clarification, local vector document retrieval (RAG), live Google Search grounding fallback, and verified source citations while strictly preventing hallucinated technical advice.
 
 ---
 
-## 🏗️ Architecture & Module Layout
+## Architecture & Methodology
 
-```text
-app.py                       Streamlit multi-tab application & role-based routing
-auth/                        Authentication & role security (ADMIN vs CUSTOMER)
-database/                    SQLite database manager & table schemas
-rag/                         RAG pipeline, Gemini SDK wrapper, vector retriever, OCR
-├── config.py                Paths, model settings, similarity thresholds
-├── models.py                Dataclasses (DocumentChunk, Citation, ChatResult, ProductEntity)
-├── gemini.py                google-genai SDK wrapper (embeddings, generation, JSON extraction)
-├── loader.py                PDF, TXT, Markdown reader & chunker with OCR fallback
-├── indexer.py               Chroma DB indexer (product_documents & approved_interactions)
-├── retriever.py             Version-aware vector similarity search
-├── sources.py               File upload & webpage HTML scraper (requests + BeautifulSoup)
-├── admin.py                 Admin source review queue & approval workflow (PENDING/APPROVED/REJECTED)
-├── chatbot.py               ProductAssistant decision orchestrator
-├── interactions.py          DB & JSONL interaction logging + memory promotion
-└── ocr.py                   Scanned PDF OCR fallback module
-ui/                          Streamlit UI components & tabs
-├── components.py            Header, badges, chat bubbles, citations, CSS loader
-├── admin_tab.py             Admin review queue, workspace creator, ingestion inputs
-├── eval_tab.py              RAG benchmark evaluation dashboard
-└── analytics_tab.py         Usage & retrieval performance metrics
-evaluation/                  Golden question benchmark dataset & evaluator
-scripts/reindex.py           CLI script to rebuild product vector indexes
-tests/                       Pytest test suite (loader, db, retriever, chatbot)
-static/style.css             Custom dark-mode glassmorphic CSS theme
+```mermaid
+flowchart TD
+    User([User Message]) --> App[Streamlit Chat UI]
+    App --> History[(Conversation History)]
+    History & User --> Assess[Gemini Conversation Assessment]
+
+    Assess -->|Ambiguous / Missing Info| Clarify[Ask Single Targeted Follow-up Question]
+    Clarify --> App
+
+    Assess -->|Sufficient Context| Extract[Extract Product & Version Details]
+    Extract --> QueryGen[Formulate Standalone Search Query]
+
+    QueryGen --> Chroma[(Local Chroma Vector DB)]
+    Chroma -->|Cosine Similarity >= Threshold| LocalDocs[Local Product Evidence + Approved Memory]
+    LocalDocs --> GroundedGen[Gemini Grounded Generator]
+
+    Chroma -->|Similarity < Threshold / No Docs| SearchGround[Gemini Google Search Grounding]
+    SearchGround --> WebEvidence[Verified Official Web Evidence]
+
+    GroundedGen --> VerifyCite{Evidence Sufficient?}
+    WebEvidence --> VerifyCite
+
+    VerifyCite -->|Yes| Answer[Answer with Exact Source Citations]
+    VerifyCite -->|No / NOT_FOUND| Escalate[Safe Escalation: Refer to Manufacturer]
+
+    Answer --> Feedback{User Feedback}
+    Feedback -->|Helpful + Non-escalated| Memory[(Approved Interaction Memory)]
+    Feedback --> JSONL[(Local interactions.jsonl)]
+    Escalate --> JSONL
 ```
 
+### Core Methodology
+
+1. **Natural Multi-Turn Clarification**: Before querying documentation, the model analyzes the conversation history. If the product, model, or issue is ambiguous, it asks a single, concise follow-up question (under 30 words) instead of guessing.
+2. **Local Documentation First**: If product documentation (PDF, Markdown, TXT) or support URLs have been added, the assistant retrieves relevant chunks partitioned by product workspace.
+3. **Google Search Grounding Fallback**: When local documentation is missing or insufficient, Gemini performs grounded web research against official manufacturer support resources.
+4. **Zero-Hallucination Guardrail & Safe Escalation**: If evidence is missing, contradictory, or hardware-version mismatched, the assistant explicitly escalates with a link to official support rather than inventing procedures or pinouts.
+5. **Human-in-the-Loop Interaction Memory**: High-quality answers marked "Helpful" by users are saved to a separate persistent memory vector collection to improve future responses without overwriting official documentation.
+
 ---
 
-## 🚀 Quickstart & Setup
+## Tech Stack
 
-### 1. Environment Setup
+| Component | Technology | Purpose |
+|---|---|---|
+| **Interface** | Streamlit | Chat UI, document uploader, URL ingestor, and workspace viewer |
+| **LLM & Vision** | Google Gemini (`gemini-2.5-flash`) | Conversation assessment, product extraction, and grounded generation |
+| **Embeddings** | Gemini (`gemini-embedding-001`) | 768-dimensional semantic embeddings for document chunks & queries |
+| **Live Research** | Google Search Grounding via `google-genai` | Fallback research with API-verified web source citations |
+| **Vector Store** | ChromaDB (Persistent) | Local vector storage partitioned by product slug and interaction memory |
+| **Document Parsers** | `pypdf`, `BeautifulSoup4`, `requests` | Ingestion of PDF manuals, Markdown, TXT FAQs, and public support URLs |
+| **Interaction Store** | JSONL (`data/interactions.jsonl`) | Local audit trail of queries, answers, citations, and feedback |
+| **Test & Eval** | `pytest`, custom CLI runner | Unit test suite and golden-question benchmark evaluation |
+
+---
+
+## Quickstart & Installation
+
+Run the following commands in your terminal to set up and start the application:
 
 ```bash
-python -m venv .venv
-# On Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# On Linux/macOS:
+# 1. Clone the repository and navigate into the directory
+git clone https://github.com/sh1r0yaksh4/Intelligent-Product-Support-Assistant.git
+cd "Intelligent Product Support Assistant"
+
+# 2. Create and activate a virtual environment
+python3 -m venv .venv
 source .venv/bin/activate
 
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Set up your environment variables
 cp .env.example .env
-```
+# Edit .env and add your GEMINI_API_KEY:
+# GEMINI_API_KEY="your-api-key-here"
 
-Set your Gemini API key in `.env`:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
+# 5. (Optional) Load the bundled demo product (TP-Link Archer AX21)
+python3 scripts/load_demo.py
 
-### 2. Run the Application
-
-```bash
+# 6. Launch the Streamlit application
 streamlit run app.py
 ```
 
-Default Login Credentials:
-- **Admin Role:** `admin` / `admin123`
-- **Customer Role:** `customer` / `customer123`
+> [!TIP]
+> Always ensure your virtual environment is active (`source .venv/bin/activate`) before running commands, or prefix commands with `.venv/bin/python3`.
 
 ---
 
-## 🧪 Testing & Evaluation
+## Usage Guide
 
-### Run Pytest Test Suite:
-```bash
-pytest
-```
+### 1. Conversational Support with Clarification
+Ask naturally about any product. If you provide incomplete information, the assistant will ask a quick clarifying question:
+- *User*: `My headphones keep disconnecting.`
+- *Assistant*: `Which brand and model of headphones are you using?`
+- *User*: `Sony WH-1000XM5`
+- *Assistant*: `[Provides verified Bluetooth multipoint troubleshooting steps with citations]`
 
-### Run Benchmark Evaluation CLI:
-```bash
-python evaluation/run_eval.py
-```
+### 2. Ingesting Product Documentation
+Open the expander **"Add trusted product documents or a support URL"** at the top of the app:
+- **Product Name**: Enter product identifier (e.g. `TP-Link Archer AX21`).
+- **File Upload**: Upload official `.pdf`, `.md`, or `.txt` manuals.
+- **Web URL**: Paste an official support page URL to fetch and index it locally.
+- **Rebuild Index**: Recompute vector embeddings for that product workspace.
 
-### Reindex Product via CLI:
-```bash
-python scripts/reindex.py "TP-Link Archer AX21" --manufacturer "TP-Link" --model "AX21" --version "V2"
+### 3. Feedback Loop
+Click **Helpful** or **Not Helpful** under assistant responses:
+- **Helpful**: Promotes verified, cited answers into the approved interaction memory collection.
+- **Not Helpful**: Logs feedback for review without indexing it as memory.
+
+---
+
+## Repository Structure
+
+```text
+├── app.py                      # Streamlit chat interface and document ingest UI
+├── pyproject.toml              # Project configuration and pytest settings
+├── requirements.txt            # Python dependencies
+├── .env.example                # Template for environment configuration
+│
+├── rag/                        # Core RAG & LLM pipeline
+│   ├── chatbot.py              # Assistant coordinator (clarification, RAG, fallback)
+│   ├── config.py               # Constants, directory paths, and model settings
+│   ├── gemini.py               # Gemini API client, embeddings, and grounding
+│   ├── indexer.py              # ChromaDB vector indexer & approved memory manager
+│   ├── interactions.py         # JSONL interaction logging and feedback processing
+│   ├── loader.py               # PDF, Markdown, and TXT chunking and parsing
+│   ├── models.py               # Data classes (ChatResult, Citation, DocumentChunk)
+│   ├── ocr.py                  # Graceful OCR fallback for image-only PDFs
+│   ├── retriever.py            # ChromaDB vector retrieval with similarity filtering
+│   └── sources.py              # Local file storage and support URL scraper
+│
+├── data/
+│   ├── examples/               # Bundled sample product guides for demoing
+│   ├── products/               # Local indexed product files (git-ignored)
+│   └── interactions.jsonl      # Local interaction and feedback log (git-ignored)
+│
+├── evaluation/
+│   ├── golden_questions.csv    # Golden benchmark dataset for quality testing
+│   └── run_eval.py             # CLI evaluation benchmark runner
+│
+├── scripts/
+│   ├── load_demo.py            # Quickstart script to index demo products
+│   └── reindex.py              # Command-line tool to reindex a product workspace
+│
+└── tests/
+    ├── test_chatbot.py         # Unit tests for clarification, context, queries, feedback
+    ├── test_loader.py          # Unit tests for document parsers and chunking
+    └── test_retriever.py       # Unit tests for vector retrieval and scoring
 ```
 
 ---
 
-## 🎬 Hackathon Judge Demo Flow
+## Testing & Quality Evaluation
 
-1. Log in as **Admin** (`admin` / `admin123`).
-2. Open **⚙️ Admin Source Review** tab $\rightarrow$ Create product workspace: `TP-Link Archer AX21` (Model: `AX21`, Hardware Version: `V2`).
-3. Upload an official PDF/TXT manual or paste an official support URL.
-4. Source immediately enters the **PENDING** approval queue.
-5. Click **✅ Approve & Index** — system chunks, embeds, and indexes the document into Chroma DB.
-6. Switch to **💬 Customer Chat** tab.
-7. Ask: *"How do I reset my TP-Link Archer AX21 router?"*
-8. Assistant retrieves local manual chunks, synthesizes grounded instructions, displays source citations (title, section, page), and shows the **VERIFIED DOC GROUNDED** badge.
-9. Click **👍 Helpful** — interaction is promoted to approved historical memory.
-10. Ask a question not in the local manual: *"What is the warranty policy for TP-Link AX21?"*
-11. System automatically falls back to **GOOGLE SEARCH GROUNDED** and provides official web citations.
-12. Ask an unanswerable / unsupported question: *"Does it support satellite orbital messaging?"*
-13. System refuses to guess and displays an explicit **ESCALATION** warning with official manufacturer support links.
-14. Open **📊 Benchmark Evaluation** tab $\rightarrow$ Click **Run Live Benchmark Evaluation** to display grounding rates, citation rates, and escalation accuracy.
-15. Open **📈 System Analytics** tab to view retrieval tier breakdowns and feedback ratios.
+### Run Unit Tests
+```bash
+pytest -v
+```
+
+### Run Golden Benchmark Evaluation
+To evaluate live answer accuracy, citation presence, and escalation behavior against the benchmark test set:
+
+```bash
+python3 evaluation/run_eval.py
+```
+*(Requires `GEMINI_API_KEY` in `.env`)*
