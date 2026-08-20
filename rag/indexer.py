@@ -6,7 +6,7 @@ from typing import Iterable
 import chromadb
 from chromadb.config import Settings
 
-from .config import CHROMA_DIR, DOCUMENT_COLLECTION, MEMORY_COLLECTION, ensure_directories
+from .config import CHROMA_DIR, DOCUMENT_COLLECTION, FAQ_COLLECTION, MEMORY_COLLECTION, ensure_directories
 from .gemini import embed_texts
 from .models import DocumentChunk
 
@@ -84,3 +84,44 @@ class ProductIndex:
                 }
             ],
         )
+
+    def index_faq_pairs(self, faq_path: "Path") -> int:
+        """Index general support FAQ Q&A pairs into the FAQ collection."""
+        import json
+        from pathlib import Path as _Path
+
+        faq_path = _Path(faq_path)
+        if not faq_path.exists():
+            return 0
+
+        pairs = [json.loads(line) for line in faq_path.read_text("utf-8").splitlines() if line.strip()]
+        if not pairs:
+            return 0
+
+        collection = self._collection(FAQ_COLLECTION)
+
+        # Clear existing FAQ data for clean re-index
+        if collection.count() > 0:
+            existing = collection.get()
+            if existing and existing.get("ids"):
+                collection.delete(ids=existing["ids"])
+
+        import time
+        for start in range(0, len(pairs), 50):
+            batch = pairs[start : start + 50]
+            texts = [f"Q: {p['question']}\nA: {p['answer']}" for p in batch]
+            embeddings = embed_texts(texts, "RETRIEVAL_DOCUMENT")
+            collection.add(
+                ids=[str(uuid.uuid4()) for _ in batch],
+                documents=texts,
+                embeddings=embeddings,
+                metadatas=[{
+                    "category": p.get("category", "general"),
+                    "intent": p.get("intent", ""),
+                    "source": p.get("source", "faq"),
+                    "question": p["question"],
+                    "domain": "general_support",
+                } for p in batch],
+            )
+            time.sleep(2.0)
+        return len(pairs)

@@ -8,33 +8,62 @@ A chat-first, grounded product support assistant designed for consumer hardware 
 
 ```mermaid
 flowchart TD
-    User([User Message]) --> App[Streamlit Chat UI]
-    App --> History[(Conversation History)]
-    History & User --> Assess[Gemini Conversation Assessment]
+    %% Nodes
+    User(["👤 User Prompt"])
+    Assessor{"🧠 Conversation Assessor\n(rag/gemini.py)\nDecides Domain & Action"}
+    
+    Clarify["❓ Ask Clarification Q"]
+    
+    subgraph FAQ["Domain A: General Support (FAQ)"]
+        FAQ_Ret["🔍 FAQ Retrieval\n(general_support_faqs)"]
+        FAQ_Gen["🤖 FAQ Grounded Gen\n(FAQ Evidence)"]
+        FAQ_Search["🌐 Google Search\n(General Support)"]
+        FAQ_Esc["⚠️ General Escalation"]
+    end
+    
+    subgraph Prod["Domain B: Product Support (Hardware)"]
+        Prod_Query["🔄 Query Reformer"]
+        Prod_Ret["📚 ChromaDB Retrieval\n(product_docs + memory)"]
+        Prod_Gen["🤖 Strict Grounded Gen\n(Local Evidence Only)"]
+        Prod_Search["🌐 Google Search\n(Manufacturer Portals)"]
+        Prod_Esc["⚠️ Hardware Escalation"]
+    end
+    
+    Answer(["✅ Synthesize Answer\n(with Citations)"])
+    Feedback{"👍 User Feedback\n(Helpful?)"}
+    SaveMem[("💾 Save to ChromaDB\n(approved_memory)")]
+    LogDB[("📊 Log to Analytics\n(interactions.jsonl)")]
 
-    Assess -->|Ambiguous / Missing Info| Clarify[Ask Single Targeted Follow-up Question]
-    Clarify --> App
-
-    Assess -->|Sufficient Context| Extract[Extract Product & Version Details]
-    Extract --> QueryGen[Formulate Standalone Search Query]
-
-    QueryGen --> Chroma[(Local Chroma Vector DB)]
-    Chroma -->|Cosine Similarity >= Threshold| LocalDocs[Local Product Evidence + Approved Memory]
-    LocalDocs --> GroundedGen[Gemini Grounded Generator]
-
-    Chroma -->|Similarity < Threshold / No Docs| SearchGround[Gemini Google Search Grounding]
-    SearchGround --> WebEvidence[Verified Official Web Evidence]
-
-    GroundedGen --> VerifyCite{Evidence Sufficient?}
-    WebEvidence --> VerifyCite
-
-    VerifyCite -->|Yes| Answer[Answer with Exact Source Citations]
-    VerifyCite -->|No / NOT_FOUND| Escalate[Safe Escalation: Refer to Manufacturer]
-
-    Answer --> Feedback{User Feedback}
-    Feedback -->|Helpful + Non-escalated| Memory[(Approved Interaction Memory)]
-    Feedback --> JSONL[(Local interactions.jsonl)]
-    Escalate --> JSONL
+    %% Routing
+    User --> Assessor
+    Assessor -->|Action: Clarify| Clarify
+    
+    Assessor -->|general_support| FAQ_Ret
+    Assessor -->|product_support| Prod_Query
+    
+    %% FAQ Path
+    FAQ_Ret -->|Score >= 0.35| FAQ_Gen
+    FAQ_Ret -->|Score < 0.35| FAQ_Search
+    FAQ_Gen -->|NOT_FOUND| FAQ_Search
+    FAQ_Gen -->|OK| Answer
+    FAQ_Search -->|NOT_FOUND| FAQ_Esc
+    FAQ_Search -->|OK| Answer
+    FAQ_Esc --> Answer
+    
+    %% Product Path
+    Prod_Query --> Prod_Ret
+    Prod_Ret -->|Score >= 0.42| Prod_Gen
+    Prod_Ret -->|Score < 0.42| Prod_Search
+    Prod_Gen -->|NOT_FOUND| Prod_Search
+    Prod_Gen -->|OK| Answer
+    Prod_Search -->|NOT_FOUND| Prod_Esc
+    Prod_Search -->|OK| Answer
+    Prod_Esc --> Answer
+    
+    %% Feedback Loop
+    Answer --> Feedback
+    Feedback -->|Yes| SaveMem
+    Feedback -->|No| LogDB
 ```
 
 ### Core Methodology

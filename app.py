@@ -1,15 +1,25 @@
 from __future__ import annotations
 
 import html
+import importlib
 import json
+import sys
 import urllib.parse
 import uuid
 from datetime import datetime
 from pathlib import Path
 import streamlit as st
 
+# Ensure modified submodules are reloaded in Streamlit's long-running process
+for mod_name in list(sys.modules.keys()):
+    if mod_name == "rag" or mod_name.startswith("rag."):
+        try:
+            importlib.reload(sys.modules[mod_name])
+        except Exception:
+            pass
+
 from rag.chatbot import ProductAssistant
-from rag.config import DATA_DIR, slugify
+from rag.config import CHROMA_DIR, DATA_DIR, FAQ_COLLECTION, FAQ_DIR, slugify
 from rag.gemini import GeminiUnavailable
 from rag.indexer import ProductIndex
 from rag.interactions import record_interaction, submit_feedback
@@ -474,6 +484,27 @@ def get_assistant() -> ProductAssistant:
     return ProductAssistant()
 
 
+@st.cache_resource
+def ensure_faq_index() -> bool:
+    """Index general support FAQs into ChromaDB if the collection is empty."""
+    faq_path = FAQ_DIR / "general_support_faqs.jsonl"
+    if not faq_path.exists():
+        return False
+    try:
+        import chromadb
+        from chromadb.config import Settings as _Settings
+        client = chromadb.PersistentClient(path=str(CHROMA_DIR), settings=_Settings(anonymized_telemetry=False))
+        try:
+            col = client.get_collection(FAQ_COLLECTION)
+            if col.count() > 0:
+                return True  # Already indexed
+        except Exception:
+            pass
+        return ProductIndex().index_faq_pairs(faq_path) > 0
+    except Exception:
+        return False
+
+
 def rebuild_product_index(product_name: str) -> int:
     product_id = slugify(product_name)
     directory = product_directory(product_id)
@@ -485,6 +516,7 @@ def rebuild_product_index(product_name: str) -> int:
 
 # --- Session State Setup ---
 inject_custom_styles()
+ensure_faq_index()
 
 if "conversations" not in st.session_state:
     st.session_state.conversations = load_conversations()

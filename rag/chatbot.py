@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .config import MIN_DOCUMENT_SIMILARITY, SUPPORT_URL, slugify
+from .config import MIN_DOCUMENT_SIMILARITY, MIN_FAQ_SIMILARITY, SUPPORT_URL, slugify
 from .gemini import (
     assess_conversation,
     generate_grounded_answer,
@@ -14,6 +14,11 @@ SYSTEM_INSTRUCTIONS = """You are a careful, version-aware product-support assist
 Use ONLY the supplied verified evidence. Never invent a specification, procedure, reset sequence, or product feature.
 If the evidence does not answer the question or if incompatible hardware versions are mixed, respond exactly with NOT_FOUND: followed by a brief explanation.
 Give concise, step-by-step instructions. Cite the exact source title, section, or page number when answering from product documents."""
+
+FAQ_SYSTEM_INSTRUCTIONS = """You are a helpful customer support assistant.
+Answer using ONLY the provided FAQ evidence. Give clear, concise answers.
+If the FAQ evidence does not cover the question, respond exactly with NOT_FOUND: followed by a brief explanation.
+Do not invent policies, deadlines, or procedures not present in the evidence."""
 
 
 def _context(chunks: list[RetrievedChunk], memory_chunks: list[RetrievedChunk] | None = None) -> str:
@@ -31,6 +36,15 @@ def _context(chunks: list[RetrievedChunk], memory_chunks: list[RetrievedChunk] |
     return "\n\n".join(parts)
 
 
+def _faq_context(chunks: list[RetrievedChunk]) -> str:
+    """Format FAQ chunks as evidence without hardware metadata."""
+    parts = ["=== General Support FAQ Evidence ==="]
+    for chunk in chunks:
+        category = chunk.metadata.get("category", "general").replace("_", " ").title()
+        parts.append(f"[Category: {category}]\n{chunk.text}")
+    return "\n\n".join(parts)
+
+
 def _document_citations(chunks: list[RetrievedChunk]) -> list[Citation]:
     seen: set[tuple[str, str]] = set()
     citations: list[Citation] = []
@@ -45,18 +59,43 @@ def _document_citations(chunks: list[RetrievedChunk]) -> list[Citation]:
     return citations[:3]
 
 
+def _faq_citations(chunks: list[RetrievedChunk]) -> list[Citation]:
+    """Build category-based citations for FAQ answers."""
+    seen: set[str] = set()
+    citations: list[Citation] = []
+    for chunk in chunks:
+        category = chunk.metadata.get("category", "general").replace("_", " ").title()
+        if category in seen:
+            continue
+        seen.add(category)
+        citations.append(Citation(title=category, url="", source_type="faq"))
+    return citations[:3]
+
+
 def _escalation(product_name: str | None, hardware_version: str | None = None) -> ChatResult:
     p_label = f" for {product_name}" if product_name else ""
     v_label = f" (hardware version {hardware_version})" if hardware_version else ""
     return ChatResult(
         answer=(
-            f"I couldn’t verify an answer{p_label}{v_label} from approved documentation. "
+            f"I couldn't verify an answer{p_label}{v_label} from approved documentation. "
             "To prevent incorrect hardware instructions, please verify your model/version or check official manufacturer support."
         ),
         citations=[Citation(title="Find official manufacturer support", url=SUPPORT_URL, source_type="support")],
         escalated=True,
         product_name=product_name,
         hardware_version=hardware_version,
+    )
+
+
+def _general_escalation() -> ChatResult:
+    """Escalation for general support questions not covered by FAQ data."""
+    return ChatResult(
+        answer=(
+            "I couldn't find a verified answer in our support FAQ. "
+            "Please contact our customer support team directly for assistance with your inquiry."
+        ),
+        citations=[Citation(title="Contact Customer Support", url=SUPPORT_URL, source_type="support")],
+        escalated=True,
     )
 
 
@@ -74,7 +113,7 @@ class ProductAssistant:
     ) -> ChatResult:
         history_list = history or []
 
-        # Step 1: Assess conversation — clarify or answer?
+        # Step 1: Assess conversation — clarify, classify domain, or answer?
         assessment = assess_conversation(question, history_list, active_product, active_version)
         if assessment.get("action") == "clarify" and assessment.get("clarification_question"):
             return ChatResult(
@@ -84,6 +123,70 @@ class ProductAssistant:
                 hardware_version=assessment.get("hardware_version") or active_version,
             )
 
+        question_domain = assessment.get("question_domain", "product_support")
+        style_instruction = f"\nUser style preference: {user_style}\n" if user_style else ""
+
+        # ── General Support Path ────────────────────────────────────────
+        if question_domain == "general_support":
+            return self._answer_general_support(question, history_list, style_instruction)
+
+        # ── Product Support Path (unchanged) ────────────────────────────
+        return self._answer_product_support(
+            question, history_list, assessment, active_product, active_version, style_instruction
+        )
+
+    def _answer_general_support(
+        self, question: str, history_list: list[dict[str, str]], style_instruction: str
+    ) -> ChatResult:
+        """Handle account, order, shipping, returns, refund questions via FAQ collection."""
+        # Step 1: FAQ Vector Retrieval
+        faq_chunks = self.retriever.retrieve_faq(question)
+
+        if faq_chunks and faq_chunks[0].score >= MIN_FAQ_SIMILARITY:
+            prompt = f"""{FAQ_SYSTEM_INSTRUCTIONS}
+{style_instruction}
+Conversation context: {history_list[-4:]}
+
+Evidence:
+{_faq_context(faq_chunks)}
+
+Question: {question}
+Answer:"""
+            response = generate_grounded_answer(prompt)
+            if not response.startswith("NOT_FOUND:"):
+                return ChatResult(
+                    answer=response,
+                    citations=_faq_citations(faq_chunks),
+                )
+
+        # Step 2: Web Search Grounding Fallback (general support)
+        research_prompt = f"""Research this general customer support question using Google Search grounding.
+{style_instruction}
+Question: {question}
+
+Look for official company FAQ pages, help centers, and customer service documentation.
+If you cannot find a clear, verified answer, begin your response exactly with NOT_FOUND:. Keep the answer concise."""
+
+        response, citations = search_grounded_answer(research_prompt)
+        if not response or response.startswith("NOT_FOUND:") or not citations:
+            return _general_escalation()
+
+        return ChatResult(
+            answer=response,
+            citations=citations[:3],
+            used_search=True,
+        )
+
+    def _answer_product_support(
+        self,
+        question: str,
+        history_list: list[dict[str, str]],
+        assessment: dict,
+        active_product: str | None,
+        active_version: str | None,
+        style_instruction: str,
+    ) -> ChatResult:
+        """Handle hardware troubleshooting questions via product_docs + approved_memory."""
         product_name = assessment.get("product_name") or active_product
         hardware_version = assessment.get("hardware_version") or active_version or ""
         product_id = slugify(product_name or "general")
@@ -94,8 +197,6 @@ class ProductAssistant:
         # Step 3: Local Document Vector Retrieval (Version-Aware)
         local_chunks = self.retriever.retrieve_documents(retrieval_query, product_id, hardware_version)
         memory_chunks = self.retriever.retrieve_approved_memory(retrieval_query, product_id, top_k=2)
-
-        style_instruction = f"\nUser style preference: {user_style}\n" if user_style else ""
 
         # Step 4: Relevance & Score Check
         if local_chunks and local_chunks[0].score >= MIN_DOCUMENT_SIMILARITY:

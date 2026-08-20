@@ -31,15 +31,25 @@ def _client() -> genai.Client:
 def embed_texts(texts: list[str], task_type: str) -> list[list[float]]:
     if not texts:
         return []
-    response = _client().models.embed_content(
-        model=EMBEDDING_MODEL,
-        contents=texts,
-        config=types.EmbedContentConfig(
-            task_type=task_type,
-            output_dimensionality=EMBEDDING_DIMENSIONS,
-        ),
-    )
-    return [embedding.values for embedding in response.embeddings]
+    import time
+    for attempt in range(10):
+        try:
+            response = _client().models.embed_content(
+                model=EMBEDDING_MODEL,
+                contents=texts,
+                config=types.EmbedContentConfig(
+                    task_type=task_type,
+                    output_dimensionality=EMBEDDING_DIMENSIONS,
+                ),
+            )
+            return [embedding.values for embedding in response.embeddings]
+        except Exception as exc:
+            exc_str = str(exc).lower()
+            if ("429" in exc_str or "quota" in exc_str or "rate" in exc_str or "resource_exhausted" in exc_str) and attempt < 9:
+                time.sleep(min(30, 4 * (attempt + 1)))
+                continue
+            raise
+    return []
 
 
 def generate_grounded_answer(prompt: str) -> str:
@@ -139,11 +149,14 @@ def assess_conversation(
     active_version: str | None = None,
 ) -> dict:
     """Assess whether there is enough context to search and answer or if a clarification question is needed."""
-    prompt = f"""You are a product support conversation evaluator.
-Analyze the user's message and prior conversation history. Decide whether you have enough specific product and issue context to search documentation and provide a helpful answer, or if you should ask a single short clarifying question.
+    prompt = f"""You are a customer support conversation evaluator.
+Analyze the user's message and prior conversation history. Decide:
+1. What domain this question belongs to.
+2. Whether you have enough context to answer, or should ask a clarifying question.
 
 Return JSON with EXACTLY these fields:
 - "action": "answer" or "clarify"
+- "question_domain": "product_support" or "general_support"
 - "product_name": string (extracted product name such as "TP-Link Archer AX21", "Sony WH-1000XM5", or "" if unknown)
 - "manufacturer": string (e.g. "TP-Link", "Sony", or "")
 - "model": string (e.g. "AX21", "WH-1000XM5", or "")
@@ -153,11 +166,15 @@ Return JSON with EXACTLY these fields:
 - "reasoning": string (brief explanation)
 
 Guidelines:
-1. If the user named a specific product (or it was established earlier in history/active product) and described a specific question/problem -> action = "answer".
-2. If the product is unknown and cannot be inferred from history -> action = "clarify", ask which product (brand and model) they are using.
-3. If the product is known but the problem description is completely ambiguous or empty (e.g. "it doesn't work", "help") -> action = "clarify", ask for details about the specific issue.
-4. If the message is a greeting or general remark without a product or issue -> action = "clarify", greet politely and ask how you can help with their product.
-5. Keep clarification questions friendly, direct, and under 30 words. Ask only ONE question at a time.
+1. First, classify the question domain:
+   - "product_support": Questions about a specific physical device, hardware troubleshooting, firmware, setup, connectivity, specs, or any question that requires knowing a specific product model.
+   - "general_support": Questions about account management, orders, order tracking, shipping, delivery, returns, refunds, payments, invoices, cancellation policies, password resets, subscription management, newsletters, or contacting customer support. These DO NOT require a product/model to answer.
+2. If question_domain is "general_support" → action = "answer". Do NOT ask for a product name or model — it is irrelevant for account/order/policy questions.
+3. If question_domain is "product_support" and the user named a specific product (or it was established earlier in history/active product) and described a specific question/problem → action = "answer".
+4. If question_domain is "product_support" and the product is unknown and cannot be inferred from history → action = "clarify", ask which product (brand and model) they are using.
+5. If the product is known but the problem description is completely ambiguous or empty (e.g. "it doesn't work", "help") → action = "clarify", ask for details about the specific issue.
+6. If the message is a greeting or general remark without a product or issue → action = "clarify", greet politely and ask how you can help.
+7. Keep clarification questions friendly, direct, and under 30 words. Ask only ONE question at a time.
 
 Active product workspace: {active_product or 'none'}
 Active hardware version: {active_version or 'none'}
@@ -175,8 +192,17 @@ Latest message: {message}"""
         if action not in {"answer", "clarify"}:
             action = "answer"
 
+        question_domain = data.get("question_domain", "product_support").lower()
+        if question_domain not in {"product_support", "general_support"}:
+            question_domain = "product_support"
+
+        # General support questions should never trigger clarification for product info
+        if question_domain == "general_support":
+            action = "answer"
+
         return {
             "action": action,
+            "question_domain": question_domain,
             "product_name": data.get("product_name") or active_product or "",
             "manufacturer": data.get("manufacturer") or "",
             "model": data.get("model") or "",
@@ -188,6 +214,7 @@ Latest message: {message}"""
     except Exception:
         return {
             "action": "answer",
+            "question_domain": "product_support",
             "product_name": active_product or "",
             "manufacturer": "",
             "model": "",

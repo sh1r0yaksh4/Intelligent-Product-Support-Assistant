@@ -4,3 +4,9 @@ id,product,hardware_version,question,expected_topic,answerable,expected_source,v
 3,TP-Link Archer AX21,V2,"How do I configure EasyMesh on V2?",easymesh setup,yes,official manual V2,,Hardware version specific query
 4,Example appliance,,"Does it support satellite orbital messaging?",unsupported feature,no,,,Should trigger escalation
 5,Sony WH-1000XM5,,"How do I pair with a second device?",multipoint pairing,yes,official user guide,,Headphones Bluetooth pairing
+6,,,"What is your return policy?",returns,yes,general_support_faqs,,Should route to FAQ — not ask for device model
+7,,,"How do I reset my password?",account,yes,general_support_faqs,,Account question — no product needed
+8,,,"Can I track my order?",order tracking,yes,general_support_faqs,,Order question
+9,,,"Do you ship internationally?",shipping,yes,general_support_faqs,,Shipping policy
+10,,,"How long until I get a refund?",refunds,yes,general_support_faqs,,Refund timeline
+11,,,"Can I cancel an order that already shipped?",cancellation,yes,general_support_faqs,,Edge-case policy question

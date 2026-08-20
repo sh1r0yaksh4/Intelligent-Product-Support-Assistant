@@ -15,9 +15,14 @@ load_dotenv(ROOT_DIR / ".env")
 
 DOCUMENT_COLLECTION = "product_documents"
 MEMORY_COLLECTION = "approved_interactions"
+FAQ_COLLECTION = "general_support_faqs"
 EMBEDDING_DIMENSIONS = 768
 TOP_K = 5
+FAQ_TOP_K = 3
 MIN_DOCUMENT_SIMILARITY = float(os.getenv("MIN_DOCUMENT_SIMILARITY", "0.42"))
+MIN_FAQ_SIMILARITY = float(os.getenv("MIN_FAQ_SIMILARITY", "0.35"))
+
+FAQ_DIR = DATA_DIR / "faq"
 
 GENERATION_MODEL = os.getenv("GEMINI_GENERATION_MODEL", "gemini-3.6-flash")
 SEARCH_MODEL = os.getenv("GEMINI_SEARCH_MODEL", "gemini-3.6-flash")

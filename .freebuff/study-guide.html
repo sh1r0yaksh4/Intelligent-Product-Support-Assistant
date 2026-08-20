@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligent Product Support Assistant — Complete Study Guide</title>
+<style>
+  /* ===== PRINT & PAGE SETUP ===== */
+  @page {
+    size: A4;
+    margin: 2cm 2.2cm;
+  }
+  @media print {
+    body { font-size: 10.5pt; }
+    .page-break { page-break-before: always; }
+    nav, .no-print { display: none !important; }
+    .hero { padding-top: 2rem !important; }
+    section { padding: 1rem 0 !important; }
+    h2 { page-break-after: avoid; }
+    table, .card, .diagram-box { page-break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+  }
+
+  /* ===== BASE ===== */
+  :root {
+    --text: #1a1a2e;
+    --muted: #4a4a6a;
+    --light: #7a7a9a;
+    --bg: #ffffff;
+    --surface: #f4f5f8;
+    --card: #f8f9fb;
+    --border: #e0e2e8;
+    --accent: #2563eb;
+    --accent2: #059669;
+    --accent3: #d97706;
+    --accent4: #dc2626;
+    --accent5: #7c3aed;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    @media not print {
+      :root {
+        --text: #e4e6ec;
+        --muted: #a0a4b8;
+        --light: #6a6a8a;
+        --bg: #0b0d11;
+        --surface: #14171e;
+        --card: #1a1e28;
+        --border: #2a2e3a;
+        --accent: #6c8cff;
+        --accent2: #42d392;
+        --accent3: #f59e0b;
+        --accent4: #ef4444;
+        --accent5: #a78bfa;
+      }
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    overflow-x: hidden;
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0;
+    display: flex; gap: 1rem;
+    overflow-x: auto; white-space: nowrap;
+    font-size: 0.72rem;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav a { color: var(--light); text-decoration: none; padding: 0.2rem 0; }
+  nav a:hover { color: var(--accent); }
+
+  /* ===== HERO ===== */
+  .hero {
+    padding: 3rem 0 2rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 2rem;
+  }
+  .hero .overline {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 0.5rem; }
+  .hero .tagline { font-size: 1rem; color: var(--muted); max-width: 600px; }
+  .hero .meta-row {
+    display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap;
+    font-size: 0.78rem; color: var(--light);
+  }
+  .hero .meta-row strong { color: var(--text); }
+
+  /* ===== SECTIONS ===== */
+  section { margin-bottom: 2rem; }
+  section > h2 {
+    font-size: 1.25rem; font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+    padding-top: 1rem;
+  }
+  section > h2 .num {
+    color: var(--accent);
+    font-weight: 800;
+    margin-right: 0.3rem;
+  }
+  section > .lead {
+    color: var(--muted); font-size: 0.88rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 { font-size: 1rem; font-weight: 700; margin: 1.2rem 0 0.4rem; }
+  h4 { font-size: 0.9rem; font-weight: 600; margin: 1rem 0 0.3rem; }
+  p { margin-bottom: 0.7rem; font-size: 0.88rem; }
+  ul, ol { margin: 0.5rem 0 0.7rem 1.2rem; font-size: 0.88rem; }
+  li { margin-bottom: 0.3rem; }
+  strong { font-weight: 600; }
+  code {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* ===== TABLES ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 0.75rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 0.55rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface); }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.15rem;
+    margin: 0.75rem 0;
+  }
+  .card.accent-left { border-left: 3px solid var(--accent); }
+  .card.green-left { border-left: 3px solid var(--accent2); }
+  .card.amber-left { border-left: 3px solid var(--accent3); }
+  .card.red-left { border-left: 3px solid var(--accent4); }
+  .card.purple-left { border-left: 3px solid var(--accent5); }
+  .card h4 { margin-top: 0; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* ===== DIAGRAM BOXES ===== */
+  .diagram-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .diagram-box svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--light);
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+
+  /* ===== SVG TEXT COLORS ===== */
+  .diagram-box svg text { fill: var(--text); }
+  .diagram-box svg .muted { fill: var(--muted); }
+
+  /* ===== CALLOUT ===== */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    margin: 0.75rem 0;
+    font-size: 0.84rem;
+    display: flex; gap: 0.6rem;
+  }
+  .callout .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+
+  /* ===== TOC ===== */
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    columns: 2;
+    column-gap: 2rem;
+    font-size: 0.82rem;
+  }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--accent); }
+  .toc li { margin-bottom: 0.2rem; break-inside: avoid; }
+  .toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  .toc li::before {
+    counter-increment: toc;
+    content: counter(toc) ". ";
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* ===== TWO COL ===== */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 0.75rem 0;
+  }
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ===== PIPELINE STEP ===== */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+    font-size: 0.78rem;
+  }
+  .pipeline .pipe-step {
+    flex: 1;
+    min-width: 110px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.6rem 0.7rem;
+    position: relative;
+    text-align: center;
+  }
+  .pipeline .pipe-step:first-child { border-radius: 8px 0 0 8px; }
+  .pipeline .pipe-step:last-child { border-radius: 0 8px 8px 0; }
+  .pipeline .pipe-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    color: var(--light);
+    z-index: 1;
+    background: var(--bg);
+    padding: 0 2px;
+  }
+  .pipeline .pipe-step strong { display: block; font-size: 0.72rem; color: var(--accent); margin-bottom: 0.15rem; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    margin-top: 3rem;
+    padding: 1.5rem 0;
+    border-top: 2px solid var(--border);
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--light);
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#problem">Problem</a>
+  <a href="#architecture">Architecture</a>
+  <a href="#techstack">Tech Stack</a>
+  <a href="#components">Components</a>
+  <a href="#dataflow">Data Flow</a>
+  <a href="#safety">Safety</a>
+  <a href="#ui">UI/UX</a>
+  <a href="#rag">RAG Deep Dive</a>
+  <a href="#testing">Testing</a>
+  <a href="#tradeoffs">Trade-offs</a>
+  <a href="#roadmap">Roadmap</a>
+</nav>
+
+<!-- ===== COVER ===== -->
+<header class="hero" id="overview">
+  <div class="overline">Complete Study Guide & Presentation Reference</div>
+  <h1>Intelligent Product Support Assistant</h1>
+  <p class="tagline">A local-first, version-aware, Retrieval-Augmented Generation system that gives grounded hardware support answers — and refuses to guess when it doesn't know.</p>
+  <div class="meta-row">
+    <span><strong>Category:</strong> RAG / Conversational AI</span>
+    <span><strong>Stack:</strong> Python · Gemini · ChromaDB · Streamlit</span>
+    <span><strong>Methodology:</strong> Vibe-coded with AI assistance</span>
+  </div>
+</header>
+
+<!-- ===== TABLE OF CONTENTS ===== -->
+<section>
+  <h2>Table of Contents</h2>
+  <div class="toc">
+    <ol>
+      <li><a href="#overview">Executive Summary</a></li>
+      <li><a href="#problem">Problem Statement & Motivation</a></li>
+      <li><a href="#architecture">Architecture Overview</a></li>
+      <li><a href="#techstack">Tech Stack & Reasoning</a></li>
+      <li><a href="#components">Component Deep Dive</a></li>
+      <li><a href="#dataflow">End-to-End Data Flow</a></li>
+      <li><a href="#safety">Safety, Guardrails & Escalation</a></li>
+      <li><a href="#ui">UI/UX Design Decisions</a></li>
+      <li><a href="#rag">RAG Methodology Deep Dive</a></li>
+      <li><a href="#testing">Testing & Evaluation</a></li>
+      <li><a href="#tradeoffs">Key Design Trade-offs</a></li>
+      <li><a href="#faq-integration">General Support FAQ Integration</a></li>
+      <li><a href="#roadmap">Roadmap & Future Work</a></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: EXECUTIVE SUMMARY -->
+<!-- ============================================================ -->
+<section id="exec-summary">
+  <h2><span class="num">1.</span> Executive Summary</h2>
+  <p class="lead">One paragraph version of what this system does and why it matters.</p>    <p>The Intelligent Product Support Assistant is a chat-based system that answers customer questions across two domains: <strong>hardware troubleshooting</strong> (routers, headphones, IoT devices) grounded in verified product documentation, and <strong>general customer support</strong> (orders, returns, shipping, account management) grounded in curated FAQ data. It combines four evidence tiers — local product manuals, approved historical Q&A, general support FAQs, and live Google Search — with a strict zero-hallucination guardrail that forces the system to escalate to official support when it can't verify an answer.</p>
+
+  <p>This matters because <strong>wrong hardware instructions can brick devices</strong>. Providing an incorrect reset sequence, voltage rating, or firmware version for a router can permanently damage it. A typical chatbot that "sounds confident" is actively dangerous in this domain. Our system is designed to be reliable: it either cites a verified source or it says "I don't know."</p>
+
+  <div class="card accent-left">
+    <h4>What the system does in three sentences</h4>
+    <p>A customer asks a question in a Streamlit chat interface. The system first classifies the question domain (product support vs. general support), then routes to the appropriate pipeline: hardware questions search product manuals and approved memory, while account/order/policy questions search curated FAQ data. Both paths generate grounded answers citing exact sources — or safely escalate to support if they can't verify.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: PROBLEM STATEMENT -->
+<!-- ============================================================ -->
+<section id="problem" class="page-break">
+  <h2><span class="num">2.</span> Problem Statement & Motivation</h2>
+  <p class="lead">Why this system needs to exist, and why naive approaches fail.</p>
+
+  <h3>2.1 The Core Problem</h3>
+  <p>Consumer electronics support is high-stakes. A TP-Link Archer AX21 V1.0 has completely different firmware, LEDs, and reset behaviors than a V2.0 or V3.0. Generic LLMs trained on the internet mix up these versions, fabricate pinout sequences, and invent reset procedures that don't exist — sometimes damaging the very devices users are trying to fix.</p>
+
+  <h3>2.2 Why Naive Approaches Fail</h3>
+  <table>
+    <thead>
+      <tr><th>Approach</th><th>What It Does</th><th>Why It Fails Here</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Direct LLM query</strong></td>
+        <td>Ask ChatGPT/Claude the question directly</td>
+        <td>No grounding in official docs. Mixes up hardware versions. Confidently wrong answers. No citations.</td>
+      </tr>
+      <tr>
+        <td><strong>Prompt stuffing</strong></td>
+        <td>Paste entire manuals into every prompt</td>
+        <td>Context window limits. Expensive. Slow. Still no version-awareness or relevance gating.</td>
+      </tr>
+      <tr>
+        <td><strong>Fine-tuning</strong></td>
+        <td>Bake knowledge into model weights</td>
+        <td>Needs massive data. Changed manual = retrain. No citations possible. Months of work.</td>
+      </tr>
+      <tr>
+        <td><strong>Basic RAG</strong></td>
+        <td>Vector search → generate</td>
+        <td>Doesn't know when it doesn't know. Still hallucinates if retrieval misses. No version filtering.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2.3 What Makes This System Different</h3>
+  <div class="two-col">
+    <div class="card green-left">
+      <h4>Hardware-Version Awareness</h4>
+      <p>Filters documents by exact hardware revision (V1 vs V2 vs V3). A reset procedure for V1 won't accidentally be applied to V2.</p>
+    </div>
+    <div class="card red-left">
+      <h4>Zero-Hallucination Guard</h4>
+      <p>Dual safety net: the model is instructed to emit <code>NOT_FOUND:</code> if uncertain, AND a similarity score threshold gates retrieval confidence.</p>
+    </div>
+    <div class="card purple-left">
+      <h4>Self-Improving Memory</h4>
+      <p>User feedback promotes verified Q&A pairs into a secondary vector collection — improving future responses without overwriting official docs.</p>
+    </div>
+    <div class="card accent-left">
+      <h4>Multi-Turn Clarification</h4>
+      <p>Instead of guessing, the system asks one targeted follow-up question when product or issue details are ambiguous.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: ARCHITECTURE -->
+<!-- ============================================================ -->
+<section id="architecture" class="page-break">
+  <h2><span class="num">3.</span> Architecture Overview</h2>
+  <p class="lead">The high-level design and its key architectural decisions.</p>
+
+  <h3>3.1 Why RAG, and Why This Shape</h3>
+  <p>Retrieval-Augmented Generation (RAG) keeps documents in an external index and retrieves only the relevant passages for each question. This is the right fit because:</p>
+  <ul>
+    <li><strong>Scales</strong> to whatever source material you add — more manuals, more FAQs, more support pages.</li>
+    <li><strong>Updates instantly</strong> — re-index a changed manual and every future query sees the new version.</li>
+    <li><strong>Inspectable</strong> — you can see exactly which passages the system retrieved and why it answered the way it did.</li>
+    <li><strong>Decisions per query</strong> — the system can check what it actually retrieved and decide whether it genuinely knows the answer.</li>
+  </ul>
+
+  <h3>3.2 The Two Pipelines</h3>
+  <p>The architecture cleanly separates an offline indexing pipeline (runs once, or when docs change) from an online query pipeline (runs per message). This separation means re-indexing a changed manual never touches the chat logic, and debugging "the answer was wrong" starts by checking which pipeline failed.</p>
+
+  <div class="diagram-box">
+    <svg viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" style="font-family: -apple-system, sans-serif; font-size: 11px;">
+      <!-- OFFLINE BOX -->
+      <rect x="0" y="0" width="350" height="370" rx="10" fill="none" stroke="#e0e2e8" stroke-width="1.5" stroke-dasharray="5"/>
+      <text x="175" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#7c3aed">OFFLINE — runs once or on doc change</text>
+
+      <rect x="20" y="35" width="130" height="28" rx="6" fill="#f0f0ff" stroke="#7c3aed" stroke-width="1"/>
+      <text x="85" y="53" text-anchor="middle" fill="#1a1a2e" font-size="10">Product Manuals (PDF)</text>
+
+      <rect x="20" y="70" width="130" height="28" rx="6" fill="#f0f0ff" stroke="#7c3aed" stroke-width="1"/>
+      <text x="85" y="88" text-anchor="middle" fill="#1a1a2e" font-size="10">FAQs & Support Pages</text>
+
+      <rect x="20" y="105" width="130" height="28" rx="6" fill="#f0f0ff" stroke="#7c3aed" stroke-width="1"/>
+      <text x="85" y="123" text-anchor="middle" fill="#1a1a2e" font-size="10">Web URLs (fetched)</text>
+
+      <rect x="20" y="155" width="130" height="28" rx="6" fill="#f0f0ff" stroke="#2563eb" stroke-width="1"/>
+      <text x="85" y="173" text-anchor="middle" fill="#1a1a2e" font-size="10">MakTek + Bitext FAQs</text>
+
+      <!-- Arrows to parse -->
+      <line x1="150" y1="49" x2="185" y2="70" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="150" y1="84" x2="185" y2="84" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+      <line x1="150" y1="119" x2="185" y2="98" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <rect x="185" y="60" width="145" height="34" rx="6" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="1"/>
+      <text x="257" y="74" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">Parse & Chunk</text>
+      <text x="257" y="87" text-anchor="middle" fill="#aaa" font-size="8">400 words, 50 overlap</text>
+
+      <line x1="257" y1="94" x2="257" y2="115" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <rect x="185" y="115" width="145" height="34" rx="6" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="1"/>
+      <text x="257" y="129" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">Gemini Embed</text>
+      <text x="257" y="142" text-anchor="middle" fill="#aaa" font-size="8">768-dim, batch 40</text>
+
+      <line x1="257" y1="149" x2="257" y2="170" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- FAQ direct path -->
+      <line x1="150" y1="169" x2="257" y2="170" stroke="#aaa" stroke-width="0.8" stroke-dasharray="3"/>
+      <text x="200" y="167" font-size="8" fill="#aaa">JSONL→embed</text>
+
+      <!-- ChromaDB -->
+      <rect x="185" y="170" width="145" height="50" rx="8" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+      <text x="257" y="187" text-anchor="middle" fill="#fff" font-weight="700" font-size="10">ChromaDB</text>
+      <text x="257" y="200" text-anchor="middle" fill="#c0d0ff" font-size="8">product_documents</text>
+      <text x="257" y="212" text-anchor="middle" fill="#c0d0ff" font-size="8">approved_interactions</text>
+
+      <!-- FAQ collection -->
+      <rect x="185" y="230" width="145" height="30" rx="6" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+      <text x="257" y="250" text-anchor="middle" fill="#c0d0ff" font-size="9" font-weight="600">general_support_faqs</text>
+
+      <!-- ONLINE BOX -->
+      <rect x="390" y="0" width="410" height="370" rx="10" fill="none" stroke="#e0e2e8" stroke-width="1.5" stroke-dasharray="5"/>
+      <text x="595" y="20" text-anchor="middle" font-size="10" font-weight="700" fill="#059669">ONLINE — runs per customer message</text>
+
+      <rect x="490" y="35" width="170" height="28" rx="6" fill="#f0fff5" stroke="#059669" stroke-width="1"/>
+      <text x="575" y="53" text-anchor="middle" fill="#1a1a2e" font-size="10">Streamlit Chat UI</text>
+
+      <line x1="575" y1="63" x2="575" y2="80" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <rect x="490" y="80" width="170" height="36" rx="6" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="1"/>
+      <text x="575" y="95" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">Assess Conversation</text>
+      <text x="575" y="108" text-anchor="middle" fill="#aaa" font-size="8">classify domain + clarify?</text>
+
+      <!-- DOMAIN FORK -->
+      <line x1="540" y1="116" x2="490" y2="150" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="500" y="140" font-size="8" fill="#2563eb" font-weight="600">product_support</text>
+
+      <line x1="610" y1="116" x2="660" y2="150" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr)"/>
+      <text x="648" y="140" font-size="8" fill="#7c3aed" font-weight="600">general_support</text>
+
+      <!-- Product support path (left) -->
+      <rect x="420" y="150" width="130" height="28" rx="5" fill="#1a1a2e" stroke="#2563eb" stroke-width="1"/>
+      <text x="485" y="168" text-anchor="middle" fill="#fff" font-weight="600" font-size="9">Docs + Memory</text>
+      <line x1="330" y1="195" x2="420" y2="170" stroke="#2563eb" stroke-width="1" stroke-dasharray="3"/>
+
+      <line x1="485" y1="178" x2="485" y2="200" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <rect x="420" y="200" width="130" height="28" rx="5" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="1"/>
+      <text x="485" y="218" text-anchor="middle" fill="#fff" font-weight="600" font-size="9">Grounded Gen</text>
+
+      <line x1="485" y1="228" x2="485" y2="250" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- Product outcomes -->
+      <rect x="430" y="250" width="55" height="24" rx="4" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+      <text x="457" y="266" text-anchor="middle" fill="#059669" font-weight="600" font-size="9">✓ Answer</text>
+
+      <rect x="495" y="250" width="60" height="24" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="1"/>
+      <text x="525" y="266" text-anchor="middle" fill="#dc2626" font-weight="600" font-size="8">⚠ Escalate</text>
+
+      <!-- General support path (right) -->
+      <rect x="610" y="150" width="130" height="28" rx="5" fill="#1a1a2e" stroke="#7c3aed" stroke-width="1"/>
+      <text x="675" y="168" text-anchor="middle" fill="#fff" font-weight="600" font-size="9">FAQ Collection</text>
+      <line x1="330" y1="245" x2="610" y2="170" stroke="#7c3aed" stroke-width="1" stroke-dasharray="3"/>
+
+      <line x1="675" y1="178" x2="675" y2="200" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <rect x="610" y="200" width="130" height="28" rx="5" fill="#1a1a2e" stroke="#1a1a2e" stroke-width="1"/>
+      <text x="675" y="218" text-anchor="middle" fill="#fff" font-weight="600" font-size="9">Grounded Gen</text>
+
+      <line x1="675" y1="228" x2="675" y2="250" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+      <!-- General outcomes -->
+      <rect x="620" y="250" width="55" height="24" rx="4" fill="#ecfdf5" stroke="#059669" stroke-width="1"/>
+      <text x="647" y="266" text-anchor="middle" fill="#059669" font-weight="600" font-size="9">✓ Answer</text>
+
+      <rect x="685" y="250" width="60" height="24" rx="4" fill="#fef2f2" stroke="#dc2626" stroke-width="1"/>
+      <text x="715" y="266" text-anchor="middle" fill="#dc2626" font-weight="600" font-size="8">⚠ Escalate</text>
+
+      <!-- Feedback loop -->
+      <rect x="440" y="300" width="270" height="24" rx="4" fill="rgba(108,140,255,0.08)" stroke="#6c8cff" stroke-width="0.8" stroke-dasharray="3"/>
+      <text x="575" y="316" text-anchor="middle" fill="#6c8cff" font-size="8" font-weight="600">User Feedback → Approved Memory or Logged for Review</text>
+      <line x1="457" y1="274" x2="500" y2="300" stroke="#6c8cff" stroke-width="0.8" stroke-dasharray="3"/>
+      <line x1="647" y1="274" x2="600" y2="300" stroke="#6c8cff" stroke-width="0.8" stroke-dasharray="3"/>
+
+      <defs>
+        <marker id="arr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+          <path d="M0,0 L7,2.5 L0,5" fill="none" stroke="#aaa" stroke-width="0.8"/>
+        </marker>
+      </defs>
+    </svg>
+    <div class="diagram-caption">Figure 1: The dual-path architecture. The assessor classifies questions into product_support or general_support, routing each to its own retrieval pipeline.</div>
+  </div>
+
+  <h3>3.3 The Core Architectural Invariant</h3>
+  <div class="card red-left">
+    <h4>The Grounded-or-Escalate Principle</h4>
+    <p>This is the single most important architectural decision. Two independent safety signals prevent hallucination:</p>
+    <ol>
+      <li><strong>Model self-admission:</strong> The system prompt instructs Gemini to begin its response with <code>NOT_FOUND:</code> if the evidence is insufficient. We check for this prefix in the raw output.</li>
+      <li><strong>Retrieval confidence gate:</strong> The best similarity score must exceed <code>MIN_DOCUMENT_SIMILARITY</code> (0.42). Below this threshold, we fall through to web search or escalate.</li>
+    </ol>
+    <p>If either signal fires, the system returns a safe escalation message pointing the user to official manufacturer support — it never guesses.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: TECH STACK -->
+<!-- ============================================================ -->
+<section id="techstack" class="page-break">
+  <h2><span class="num">4.</span> Tech Stack & Reasoning</h2>
+  <p class="lead">Every technology choice and why it was made.</p>
+
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Technology</th><th>Why This Choice</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>LLM</strong></td>
+        <td>Google Gemini 3.6 Flash</td>
+        <td>Fast inference, native Google Search grounding (no separate API), JSON mode for structured extraction, generous free tier. Chosen over Claude/GPT because the web grounding tool is built into the SDK — no extra dependency.</td>
+      </tr>
+      <tr>
+        <td><strong>Embeddings</strong></td>
+        <td>Gemini gemini-embedding-001 (768-dim)</td>
+        <td>Same provider as the LLM (single API key, one SDK), supports task-type differentiation (<code>RETRIEVAL_DOCUMENT</code> vs <code>RETRIEVAL_QUERY</code>), 768 dimensions is a good balance of quality and storage.</td>
+      </tr>
+      <tr>
+        <td><strong>Vector Store</strong></td>
+        <td>ChromaDB (Persistent, local)</td>
+        <td>Zero-config embedded database. No Docker, no server, no cloud account. Runs in-process, persists to a local folder. Trade-off: single-machine only — irrelevant for a prototype.</td>
+      </tr>
+      <tr>
+        <td><strong>Frontend</strong></td>
+        <td>Streamlit</td>
+        <td>Real-looking chat UI in ~30 lines with <code>st.chat_input</code>/<code>st.chat_message</code>. Rich ecosystem of widgets. Hot-reload for fast iteration. Dark charcoal theme via custom CSS.</td>
+      </tr>
+      <tr>
+        <td><strong>Document Parsing</strong></td>
+        <td>PyPDF + BeautifulSoup + trafilatura</td>
+        <td>PyPDF for PDF extraction, BS4 for web scraping, both battle-tested. OCR fallback via pytesseract for scanned PDFs. No heavy dependencies like LlamaIndex that would add abstraction overhead.</td>
+      </tr>
+      <tr>
+        <td><strong>Orchestration</strong></td>
+        <td>Custom <code>rag/</code> module</td>
+        <td>No framework dependency (LlamaIndex, LangChain). Full control over the pipeline. Every decision is explicit and explainable. Trade-off: more code to write — but the code is clear.</td>
+      </tr>
+      <tr>
+        <td><strong>Testing</strong></td>
+        <td>pytest + custom eval runner</td>
+        <td>pytest for fast unit tests. Custom CLI runner (<code>run_eval.py</code>) for golden-question evaluation against live API. Separates fast feedback from expensive API calls.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>4.1 Why Not LlamaIndex or LangChain?</h3>
+  <p>The initial plan proposed LlamaIndex. The actual implementation uses a custom orchestration layer because:</p>
+  <ul>
+    <li><strong>Full control:</strong> Every branching decision (assess → clarify, retrieve → gate, generate → escalate) is explicit Python — no framework magic to debug.</li>
+    <li><strong>Explainability:</strong> When presenting, every line of the pipeline is something you wrote and can walk through.</li>
+    <li><strong>No abstraction leaks:</strong> LlamaIndex's query engine abstracts away the retrieval→generation boundary. Here, that boundary is exactly where the most important decision happens.</li>
+    <li><strong>Dependency minimization:</strong> Fewer packages to install, fewer version conflicts, fewer surprises.</li>
+  </ul>
+
+  <h3>4.2 Why Gemini Specifically?</h3>
+  <div class="card accent-left">
+    <h4>The Google Search Grounding Advantage</h4>
+    <p>The single biggest reason to use Gemini over Claude or GPT is the <strong>native Google Search grounding tool</strong>. When local documentation is insufficient, Gemini can search the web and cite its sources — all within a single API call. With other models, you'd need to build a separate search integration, handle the API, parse results, and inject them into the prompt. Here, it's one function call: <code>search_grounded_answer()</code>.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: COMPONENTS -->
+<!-- ============================================================ -->
+<section id="components" class="page-break">
+  <h2><span class="num">5.</span> Component Deep Dive</h2>
+  <p class="lead">Every module in the system, what it does, and how it connects.</p>
+
+  <h3>5.1 The Core Pipeline (<code>rag/chatbot.py</code>)</h3>
+  <p>The <code>ProductAssistant</code> class is the central orchestrator. Its <code>answer()</code> method executes the entire pipeline in a single synchronous call:</p>
+  <ol>
+    <li><strong>Assess:</strong> Calls <code>assess_conversation()</code> — Gemini decides if we need clarification.</li>
+    <li><strong>Formulate:</strong> Builds a standalone query from product name + version + recent history + question.</li>
+    <li><strong>Retrieve:</strong> Queries both ChromaDB collections (docs + memory).</li>
+    <li><strong>Gate:</strong> Checks if the best local chunk score ≥ threshold.</li>
+    <li><strong>Generate or Fallback:</strong> Strict grounded generation with local evidence, OR Google Search grounding.</li>
+    <li><strong>Escalate if needed:</strong> Returns safe escalation on <code>NOT_FOUND:</code> or missing evidence.</li>
+  </ol>
+
+  <h3>5.2 Gemini Wrapper (<code>rag/gemini.py</code>)</h3>
+  <p>A thin, focused wrapper around the <code>google-genai</code> SDK. Every function does exactly one thing:</p>
+  <table>
+    <thead><tr><th>Function</th><th>Purpose</th><th>Key Details</th></tr></thead>
+    <tbody>
+      <tr><td><code>embed_texts()</code></td><td>Generate embeddings</td><td>Supports task type (<code>RETRIEVAL_DOCUMENT</code> vs <code>RETRIEVAL_QUERY</code>), batched</td></tr>
+      <tr><td><code>generate_grounded_answer()</code></td><td>Generate from local evidence</td><td>Temperature 0.1, max 700 tokens</td></tr>
+      <tr><td><code>search_grounded_answer()</code></td><td>Google Search grounding fallback</td><td>Handles 429 quota errors gracefully — returns empty instead of crashing</td></tr>
+      <tr><td><code>assess_conversation()</code></td><td>Decide clarify vs answer</td><td>JSON mode, returns structured action + extracted product details</td></tr>
+      <tr><td><code>identify_product_structured()</code></td><td>Extract product entity</td><td>JSON mode, returns ProductEntity dataclass</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 Vector Store (<code>rag/retriever.py</code> + <code>rag/indexer.py</code>)</h3>
+  <p>Three ChromaDB collections with distinct purposes:</p>
+  <div class="two-col" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div class="card">
+      <h4><code>product_documents</code></h4>
+      <p><strong>Immutable official documentation.</strong> PDFs, Markdown, TXT files. Partitioned by <code>product_id</code> and optionally <code>hardware_version</code>. Never overwritten by user feedback.</p>
+    </div>
+    <div class="card">
+      <h4><code>approved_interactions</code></h4>
+      <p><strong>User-validated historical Q&A.</strong> Promoted via "Helpful" feedback. Secondary context — supplements but never replaces official docs.</p>
+    </div>
+    <div class="card">
+      <h4><code>general_support_faqs</code></h4>
+      <p><strong>Curated FAQ knowledge base.</strong> 686 Q&A pairs covering orders, returns, shipping, account management. No product/version filtering needed.</p>
+    </div>
+  </div>
+  <p>The product retriever uses <code>$and</code> metadata filtering when a hardware version is specified: <code>{"$and": [{"product_id": id}, {"hardware_version": ver}]}</code>. The FAQ retriever has no filtering — it searches all FAQ pairs by similarity.</p>
+
+  <h3>5.4 Document Loader (<code>rag/loader.py</code>)</h3>
+  <p>Parses file types with format-aware chunking:</p>
+  <ul>
+    <li><strong>PDF:</strong> Page-by-page extraction via PyPDF. If total text < 50 chars (scanned PDF), falls back to pytesseract OCR.</li>
+    <li><strong>Markdown:</strong> Splits on heading patterns (<code># Heading</code> or <code>1.2.3 Numbered</code>). Preserves section titles as metadata.</li>
+    <li><strong>TXT:</strong> Detects Q/A pair format (FAQ) via regex. Keeps question + answer as one chunk. Falls back to fixed-size chunking otherwise.</li>
+  </ul>
+  <p>All formats use 400-word chunks with 50-word overlap. Every chunk carries full metadata: <code>product_id</code>, <code>manufacturer</code>, <code>model</code>, <code>hardware_version</code>, <code>source_name</code>, <code>section</code>, <code>page</code>.</p>
+
+  <h3>5.5 FAQ Data Pipeline (<code>scripts/prepare_faq_data.py</code>)</h3>
+  <p>Downloads and normalizes FAQ datasets from HuggingFace:</p>
+  <ul>
+    <li><strong>MakTek (200 pairs):</strong> Clean Q/A pairs for account, payments, orders, shipping, returns</li>
+    <li><strong>Bitext (486 sampled from 26,872):</strong> Stratified sampling (18 per intent) including messy real-world phrasing with template placeholders replaced</li>
+  </ul>
+  <p>Output: <code>data/faq/general_support_faqs.jsonl</code> — 686 curated pairs with category, intent, and source metadata.</p>
+
+  <h3>5.6 Interactions & Feedback (<code>rag/interactions.py</code>)</h3>
+  <p>Every non-clarification response is logged to <code>data/interactions.jsonl</code> with: question, answer, citations, escalation status, timestamps. When a user clicks "Helpful":</p>
+  <ol>
+    <li>Validates the answer wasn't an escalation</li>
+    <li>Validates it has at least one citation</li>
+    <li>Promotes the (question, answer, source URLs) tuple into the <code>approved_interactions</code> ChromaDB collection</li>
+  </ol>
+  <p>This creates a self-improving memory loop — but critically, it <strong>never modifies the official documentation collection</strong>.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: DATA FLOW -->
+<!-- ============================================================ -->
+<section id="dataflow" class="page-break">
+  <h2><span class="num">6.</span> End-to-End Data Flow</h2>
+  <p class="lead">A complete walkthrough of what happens from user input to final response.</p>
+
+  <div class="pipeline">
+    <div class="pipe-step"><strong>1. Input</strong>User types in Streamlit chat box</div>
+    <div class="pipe-step"><strong>2. Assess</strong>Gemini JSON: clarify or answer?</div>
+    <div class="pipe-step"><strong>3. Query</strong>Build standalone retrieval string</div>
+    <div class="pipe-step"><strong>4. Retrieve</strong>ChromaDB vector search (top-5)</div>
+    <div class="pipe-step"><strong>5. Gate</strong>Score ≥ 0.42? Choose tier</div>
+    <div class="pipe-step"><strong>6. Generate</strong>Gemini grounded answer</div>
+    <div class="pipe-step"><strong>7. Output</strong>Render with citations + feedback</div>
+  </div>
+
+  <h3>Step-by-Step Walkthrough</h3>
+
+  <h4>Step 1: User Input</h4>
+  <p>The user types a question in the Streamlit chat input. If they uploaded documentation or pasted a URL in the popover, the system auto-indexes it first (saves file → chunks → embeds → ChromaDB).</p>
+
+  <h4>Step 2: Conversation Assessment</h4>
+  <p>Gemini analyzes the latest message + recent history and returns structured JSON with an <code>action</code> field: <code>"clarify"</code> or <code>"answer"</code>. If clarifying, it also returns exactly one short follow-up question (under 30 words). It extracts: product name, manufacturer, model, hardware version, confidence score.</p>
+
+  <h4>Step 3: Standalone Query Formulation</h4>
+  <p>The assistant concatenates: product name + hardware version + last 4 user turns + current question. This creates a self-contained retrieval query that doesn't depend on conversation history for context.</p>
+
+  <h4>Step 4: Vector Search</h4>
+  <p>Two parallel retrievals against ChromaDB:</p>
+  <ul>
+    <li><code>retrieve_documents()</code> — queries <code>product_documents</code> with optional <code>hardware_version</code> filtering</li>
+    <li><code>retrieve_approved_memory()</code> — queries <code>approved_interactions</code> (top-2, no version filter)</li>
+  </ul>
+  <p>Both use <code>RETRIEVAL_QUERY</code> task type. Scores are computed as <code>1 - cosine_distance</code>.</p>
+
+  <h4>Step 5: Relevance Gate</h4>
+  <p>The best local chunk score is compared against <code>MIN_DOCUMENT_SIMILARITY = 0.42</code>:</p>
+  <div class="two-col">
+    <div class="card green-left">
+      <h4>Score ≥ 0.42</h4>
+      <p>Local docs are relevant. Proceed to strict grounded generation with local evidence only.</p>
+    </div>
+    <div class="card amber-left">
+      <h4>Score &lt; 0.42</h4>
+      <p>Local docs insufficient. Fall through to Google Search grounding.</p>
+    </div>
+  </div>
+
+  <h4>Step 6: Generation</h4>
+  <p><strong>Path A (local):</strong> A detailed prompt is assembled with the system instructions, all retrieved chunks (with source metadata), memory chunks, and the question. Gemini generates at temperature 0.1. If the output starts with <code>NOT_FOUND:</code>, escalation fires.</p>
+  <p><strong>Path B (web):</strong> The question is sent to Gemini with the <code>google_search</code> tool enabled. Gemini searches official manufacturer pages and returns answers with API-verified citations.</p>
+
+  <h4>Step 7: Response Assembly</h4>
+  <p>A <code>ChatResult</code> is assembled with: answer text, up to 3 citations (title, URL, section, source type), flags (<code>escalated</code>, <code>used_search</code>, <code>used_memory</code>, <code>clarification_needed</code>). The interaction is logged to JSONL. The UI renders citations as inline badges and shows feedback buttons.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: SAFETY -->
+<!-- ============================================================ -->
+<section id="safety" class="page-break">
+  <h2><span class="num">7.</span> Safety, Guardrails & Escalation</h2>
+  <p class="lead">How the system prevents giving wrong answers that could damage hardware.</p>
+
+  <h3>7.1 The Three Safety Mechanisms</h3>
+
+  <div class="card red-left">
+    <h4>Mechanism 1: Strict System Prompt</h4>
+    <p>The system prompt in <code>SYSTEM_INSTRUCTIONS</code> explicitly tells Gemini:</p>
+    <pre>Use ONLY the supplied verified evidence. Never invent a specification,
+procedure, reset sequence, or product feature.
+If the evidence does not answer the question or if incompatible hardware
+versions are mixed, respond exactly with NOT_FOUND: followed by a brief
+explanation.</pre>
+    <p>Temperature is set to 0.1 — very close to deterministic — to minimize creative drift.</p>
+  </div>
+
+  <div class="card red-left">
+    <h4>Mechanism 2: Similarity Score Gate</h4>
+    <p>Even if Gemini doesn't self-admit <code>NOT_FOUND</code>, the system checks: if the best retrieved chunk has a similarity score below 0.42, local generation is skipped entirely. The question goes to web search or escalation instead.</p>
+  </div>
+
+  <div class="card red-left">
+    <h4>Mechanism 3: NOT_FOUND Detection</h4>
+    <p>The output is checked for the <code>NOT_FOUND:</code> prefix. If present, it's stripped and replaced with a safe escalation message directing the user to official manufacturer support. This also applies to Google Search results — if the web search returns nothing useful, escalation fires.</p>
+  </div>
+
+  <h3>7.2 The Escalation Response</h3>
+  <p>When escalation triggers, the user sees:</p>
+  <pre>"I couldn't verify an answer for TP-Link Archer AX21 (hardware version V2)
+from approved documentation. To prevent incorrect hardware instructions,
+please verify your model/version or check official manufacturer support."</pre>
+  <p>Plus a citation link to the official support portal. The interaction is logged but <strong>never promoted to memory</strong> — preventing unverified information from entering the system.</p>
+
+  <h3>7.3 Rate Limit Handling</h3>
+  <p>Google Search grounding can hit 429 quota errors. The system catches these gracefully and falls through to escalation instead of crashing:</p>
+  <pre>if "429" in exc_str or "quota" in exc_str or "rate" in exc_str:
+    return "", []  # Falls through to escalation</pre>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: UI/UX -->
+<!-- ============================================================ -->
+<section id="ui" class="page-break">
+  <h2><span class="num">8.</span> UI/UX Design Decisions</h2>
+  <p class="lead">The Streamlit interface and its design rationale.</p>
+
+  <h3>8.1 The Dark Charcoal Theme</h3>
+  <p>Custom CSS transforms Streamlit's default look into a GPT-minimalist dark interface:</p>
+  <table>
+    <thead><tr><th>Element</th><th>Color</th><th>Reasoning</th></tr></thead>
+    <tbody>
+      <tr><td>Background</td><td><code>#16181D</code></td><td>Deep charcoal — easy on eyes, professional</td></tr>
+      <tr><td>Sidebar</td><td><code>#0F1014</code></td><td>Even darker to create visual depth separation</td></tr>
+      <tr><td>Assistant card</td><td><code>#1E2129</code></td><td>Slightly lighter than bg — visible container without being loud</td></tr>
+      <tr><td>User bubble</td><td><code>#2D323E</code></td><td>Right-aligned, content-fitting, chat-app convention</td></tr>
+      <tr><td>Border</td><td><code>#2C303B</code></td><td>Subtle structure without visual noise</td></tr>
+      <tr><td>Text</td><td><code>#EDEDED</code></td><td>High contrast on dark bg, accessible</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 Chat Layout</h3>
+  <ul>
+    <li><strong>User messages:</strong> Right-aligned, content-fitting bubbles (max 75% width), rounded corners with asymmetric radius — mimicking iOS/Mac iMessage convention.</li>
+    <li><strong>Assistant messages:</strong> Left-aligned enclosing card (max 90% width) with source citations rendered as inline badges below.</li>
+    <li><strong>Copy button:</strong> Appears on hover at the bottom of each message via CSS transition.</li>
+  </ul>
+
+  <h3>8.3 Sidebar</h3>
+  <ul>
+    <li><strong>Chat history:</strong> Persistent via <code>data/chats.json</code>. Survives app restarts.</li>
+    <li><strong>Active chat:</strong> Visually distinct (primary button style, brighter border).</li>
+    <li><strong>Three-dot menu:</strong> Compact popover for archive/delete actions — only 100px wide, ultra-minimal.</li>
+    <li><strong>New Chat button:</strong> Prominent primary style, always accessible.</li>
+  </ul>
+
+  <h3>8.4 Documentation Popover</h3>
+  <p>A "+ Add documentation" button appears centered when the chat is empty. The popover accepts:</p>
+  <ul>
+    <li>File upload (PDF, TXT, MD) — saved to <code>data/products/{slug}/</code></li>
+    <li>URL input — fetched, parsed to Markdown, saved locally</li>
+  </ul>
+  <p>Documentation is auto-indexed when the user sends their next message — no separate "index" button needed.</p>
+
+  <h3>8.5 Feedback UI</h3>
+  <p>Below each assistant response (that isn't a clarification or escalation):</p>
+  <ul>
+    <li><strong>"Helpful"</strong> — promotes the Q&A to verified memory, shows toast "Saved to verified memory"</li>
+    <li><strong>"Not helpful"</strong> — logs for review, shows toast "Logged for review"</li>
+    <li>Once feedback is submitted, buttons are hidden (tracked via <code>feedback_submitted</code> in session state)</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: RAG DEEP DIVE -->
+<!-- ============================================================ -->
+<section id="rag" class="page-break">
+  <h2><span class="num">9.</span> RAG Methodology Deep Dive</h2>
+  <p class="lead">The retrieval and generation methodology explained in detail.</p>
+
+  <h3>9.1 Chunking Strategy</h3>
+  <p>The system uses <strong>format-aware chunking</strong>, not one generic size for everything:</p>
+  <table>
+    <thead><tr><th>Format</th><th>Chunking Strategy</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>PDF</td><td>Page-by-page, then 400 words / 50 overlap</td><td>Page numbers preserved as metadata for citation</td></tr>
+      <tr><td>Markdown</td><td>Split on headings (# Heading, 1.2.3 Numbered)</td><td>Preserves document structure and section context</td></tr>
+      <tr><td>TXT (FAQ)</td><td>Q/A pairs kept together as single chunks</td><td>Never split a question from its answer</td></tr>
+      <tr><td>TXT (plain)</td><td>400 words / 50 overlap fallback</td><td>Only for unstructured long text</td></tr>
+      <tr><td>JSONL (General FAQs)</td><td>Q/A pair as single document, category metadata</td><td>686 pairs from MakTek + Bitext, embedded with RETRIEVAL_DOCUMENT</td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.2 Embedding Strategy</h3>
+  <ul>
+    <li><strong>Model:</strong> Gemini gemini-embedding-001 (768 dimensions)</li>
+    <li><strong>Task types:</strong> Documents embedded with <code>RETRIEVAL_DOCUMENT</code>, queries with <code>RETRIEVAL_QUERY</code> — the model adjusts output based on the task.</li>
+    <li><strong>Batching:</strong> 40 texts per API call to balance throughput and rate limits.</li>
+    <li><strong>Critical rule:</strong> The same embedding model is used for indexing and querying. Mixing models silently breaks similarity search.</li>
+  </ul>
+
+  <h3>9.3 Dual-Path Evidence Retrieval</h3>
+  <p>The system now routes questions to two independent pipelines based on domain classification:</p>
+  
+  <h4>Product Support Pipeline (hardware questions)</h4>
+  <table>
+    <thead><tr><th>Tier</th><th>Source</th><th>When Used</th><th>Citation Type</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="color: var(--accent2);"><strong>1 — Local Docs</strong></td>
+        <td><code>product_documents</code> collection</td>
+        <td>Official manuals indexed for the product</td>
+        <td>Document (title, section, page)</td>
+      </tr>
+      <tr>
+        <td style="color: var(--accent5);"><strong>1b — Memory</strong></td>
+        <td><code>approved_interactions</code> collection</td>
+        <td>Prior verified Q&A pairs</td>
+        <td>Verified historical Q&A</td>
+      </tr>
+      <tr>
+        <td style="color: var(--accent3);"><strong>2 — Web Search</strong></td>
+        <td>Gemini Google Search Grounding</td>
+        <td>Local docs missing or below threshold</td>
+        <td>Web (API-verified URLs)</td>
+      </tr>
+      <tr>
+        <td style="color: var(--accent4);"><strong>3 — Escalation</strong></td>
+        <td>Manufacturer support link</td>
+        <td>No verified evidence from tiers 1-2</td>
+        <td>Support portal link</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>General Support Pipeline (account, orders, returns, etc.)</h4>
+  <table>
+    <thead><tr><th>Tier</th><th>Source</th><th>When Used</th><th>Citation Type</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="color: var(--accent2);"><strong>1 — FAQ Collection</strong></td>
+        <td><code>general_support_faqs</code> collection</td>
+        <td>Curated Q&A pairs (686 from MakTek + Bitext)</td>
+        <td>FAQ category (Returns, Shipping, etc.)</td>
+      </tr>
+      <tr>
+        <td style="color: var(--accent3);"><strong>2 — Web Search</strong></td>
+        <td>Gemini Google Search Grounding</td>
+        <td>FAQ collection below threshold or missing</td>
+        <td>Web (API-verified URLs)</td>
+      </tr>
+      <tr>
+        <td style="color: var(--accent4);"><strong>3 — General Escalation</strong></td>
+        <td>Customer support contact</td>
+        <td>No verified evidence from tiers 1-2</td>
+        <td>Support contact link</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card amber-left">
+    <h4>Domain Classification</h4>
+    <p>The conversation assessor (<code>assess_conversation()</code>) now outputs a <code>question_domain</code> field: <code>"product_support"</code> or <code>"general_support"</code>. General support questions (account, orders, shipping, returns) are forced to <code>action: "answer"</code> — the system never asks for a product model when the question is about a return policy.</p>
+  </div>
+
+  <h3>9.4 Prompt Engineering</h3>
+  <p>The system prompt is carefully worded to enforce grounding:</p>
+  <pre>You are a careful, version-aware product-support assistant.
+Use ONLY the supplied verified evidence. Never invent a specification,
+procedure, reset sequence, or product feature.
+If the evidence does not answer the question or if incompatible hardware
+versions are mixed, respond exactly with NOT_FOUND: followed by a brief
+explanation.
+Give concise, step-by-step instructions. Cite the exact source title,
+section, or page number when answering from product documents.</pre>
+  <p>The context assembled for generation includes two sections separated by headers: "Approved Historical Memory" (memory chunks) and "Official Product Documentation Evidence" (document chunks with full metadata).</p>
+
+  <h3>9.5 Conversation Memory</h3>
+  <p>The last 4 user turns are included in the retrieval query (for context) and in the generation prompt (as conversation context). Older turns are truncated — a simple fixed window avoids unbounded context growth.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: TESTING -->
+<!-- ============================================================ -->
+<section id="testing" class="page-break">
+  <h2><span class="num">10.</span> Testing & Evaluation</h2>
+  <p class="lead">How the system is verified for correctness and safety.</p>
+
+  <h3>10.1 Unit Tests (pytest)</h3>
+  <p>Fast, isolated tests that don't require API calls:</p>
+  <table>
+    <thead><tr><th>Test File</th><th>What It Tests</th><th>Key Assertions</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>test_chatbot.py</code></td>
+        <td>Escalation formatting, citation deduplication, context assembly, standalone query construction, clarification flow, interaction recording + feedback</td>
+        <td>7 tests covering the core pipeline logic without API calls (uses monkeypatching)</td>
+      </tr>
+      <tr>
+        <td><code>test_loader.py</code></td>
+        <td>FAQ pairs stay together, markdown headings retained</td>
+        <td>Q/A chunks contain both question and answer; section metadata preserved</td>
+      </tr>
+      <tr>
+        <td><code>test_retriever.py</code></td>
+        <td>Empty collection handling, score calculation</td>
+        <td>Returns empty list gracefully; scores computed correctly</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><strong>Total: 11 tests passing, 0 failures.</strong></p>
+
+  <h3>10.2 Golden Question Evaluation</h3>
+  <p>A benchmark set of questions in <code>evaluation/golden_questions.csv</code> with columns: id, product, hardware_version, question, answerable (yes/no). The CLI runner <code>run_eval.py</code>:</p>
+  <ol>
+    <li>Runs each question through <code>ProductAssistant.answer()</code></li>
+    <li>Checks answerable questions: must not be escalated AND must have ≥ 1 citation</li>
+    <li>Checks unanswerable questions: must trigger escalation (not hallucinate)</li>
+    <li>Reports pass/fail verdicts and writes them back to the CSV</li>
+  </ol>
+
+  <div class="card amber-left">
+    <h4>Why this matters</h4>
+    <p>The intentional "no" questions (no real answer in the knowledge base) test the escalation mechanism — the most important safety feature. If these pass as "answered," the system is hallucinating.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: TRADE-OFFS -->
+<!-- ============================================================ -->
+<section id="tradeoffs" class="page-break">
+  <h2><span class="num">11.</span> Key Design Trade-offs</h2>
+  <p class="lead">What was chosen, what was deferred, and why.</p>
+
+  <table>
+    <thead><tr><th>Decision</th><th>Chose</th><th>Deferred</th><th>Reasoning</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Orchestration</td>
+        <td>Custom module</td>
+        <td>LlamaIndex / LangChain</td>
+        <td>Full control, full explainability, no framework magic. More code but every line is meaningful.</td>
+      </tr>
+      <tr>
+        <td>Reranking</td>
+        <td>Not implemented</td>
+        <td>Cross-encoder reranker</td>
+        <td>Quality improvement in production, but adds a model, dependency, and tuning surface. Chunk size tuning moves accuracy more per hour at this scale.</td>
+      </tr>
+      <tr>
+        <td>Cloud deployment</td>
+        <td>Local prototype</td>
+        <td>Docker, CI/CD, hosting</td>
+        <td>Deliverable is a working prototype, not a hosted service. Ops maturity doesn't help the rubric.</td>
+      </tr>
+      <tr>
+        <td>Evaluation framework</td>
+        <td>Custom CLI runner</td>
+        <td>RAGAS pipeline</td>
+        <td>Same signal (is the answer grounded?) without the setup overhead. Manual + CLI gets 80% of the value.</td>
+      </tr>
+      <tr>
+        <td>Streaming</td>
+        <td>Full response + spinner</td>
+        <td>Token-by-token streaming</td>
+        <td>Perceived latency improvement, but <code>st.write_stream</code> + Gemini streaming adds complexity. Deferred to roadmap.</td>
+      </tr>
+      <tr>
+        <td>Model flexibility</td>
+        <td>Gemini only</td>
+        <td>Multi-model (Claude, GPT)</td>
+        <td>Google Search grounding is Gemini-specific. Swapping models later is a targeted change thanks to the clean wrapper in <code>gemini.py</code>.</td>
+      </tr>
+      <tr>
+        <td>Memory validation</td>
+        <td>Basic (escalation check + citation check)</td>
+        <td>Multi-stage LLM judge, injection scanning</td>
+        <td>Important for production, but the current gates catch the obvious failure modes. Complex validation deferred to roadmap.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card accent-left">
+    <h4>The "Vibe-Coded" Advantage</h4>
+    <p>Every architecture decision in this system is explicit and can be explained. There's no framework magic to hide behind. When asked "why does this work?", the answer is: "because here's the code that checks, here's the threshold, here's the prompt, and here's the fallback." That transparency is the real deliverable.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 11.5: FAQ INTEGRATION -->
+<!-- ============================================================ -->
+<section id="faq-integration" class="page-break">
+  <h2><span class="num">11.5.</span> General Support FAQ Integration</h2>
+  <p class="lead">The most recent major feature: adding a second knowledge domain for non-hardware questions.</p>
+
+  <h3>The Problem</h3>
+  <p>The original system only handled hardware troubleshooting. When a user asked "What is your return policy?" or "How do I reset my password?", the system would either:</p>
+  <ul>
+    <li>Ask for a product model (wrong — return policies don't need a product)</li>
+    <li>Fall through to Google Search (expensive, unreliable)</li>
+    <li>Escalate to manufacturer support (wrong — this is a general question)</li>
+  </ul>
+
+  <h3>The Solution: Domain-Routed Dual Pipeline</h3>
+  <div class="card accent-left">
+    <h4>Architecture Change</h4>
+    <p><strong>Before:</strong> Single linear pipeline<br>
+    <code>Assess → product_docs → Google Search → Escalation</code></p>
+    <p><strong>After:</strong> Domain-routed dual pipeline<br>
+    <code>Assess (+ question_domain classification)<br>
+    ├── general_support → general_support_faqs → Google Search → General Escalation<br>
+    └── product_support → product_docs + memory → Google Search → Hardware Escalation</code></p>
+  </div>
+
+  <h3>Data Pipeline</h3>
+  <p>The <code>prepare_faq_data.py</code> script downloads and normalizes FAQ datasets from HuggingFace:</p>
+  <table>
+    <thead><tr><th>Source</th><th>Original Size</th><th>Sampled</th><th>Categories</th></tr></thead>
+    <tbody>
+      <tr><td>MakTek Customer Support FAQs</td><td>200 pairs</td><td>All 200</td><td>Account, payments, orders, shipping, returns</td></tr>
+      <tr><td>Bitext Customer Support Training</td><td>26,872 pairs</td><td>486 (18 per intent)</td><td>Account, order, shipping, refunds, cancellations, and more</td></tr>
+    </tbody>
+  </table>
+  <p>Total: <strong>686 curated Q&A pairs</strong> stored in <code>data/faq/general_support_faqs.jsonl</code>.</p>
+
+  <h3>Key Implementation Details</h3>
+  <ul>
+    <li><strong>Auto-indexing:</strong> <code>ensure_faq_index()</code> in app.py runs on startup — checks if the FAQ collection is empty, indexes if needed. Cached with <code>@st.cache_resource</code>.</li>
+    <li><strong>Domain classification:</strong> The assessor prompt now includes guidelines for classifying questions as <code>product_support</code> or <code>general_support</code>. General support questions are <strong>forced to <code>action: "answer"</code></strong> — no product clarification.</li>
+    <li><strong>Separate system prompt:</strong> <code>FAQ_SYSTEM_INSTRUCTIONS</code> is lighter than the hardware prompt — no version awareness needed, just clean FAQ grounding.</li>
+    <li><strong>Different thresholds:</strong> FAQ similarity threshold is <code>MIN_FAQ_SIMILARITY = 0.35</code> (lower than product docs at 0.42) because FAQ phrasing is more varied.</li>
+    <li><strong>Category-based citations:</strong> FAQ answers cite the category (e.g., "Returns", "Shipping") rather than a specific document.</li>
+    <li><strong>Separate escalation:</strong> <code>_general_escalation()</code> points to customer support, not manufacturer support.</li>
+  </ul>
+
+  <h3>Testing</h3>
+  <p>6 new test cases added to <code>golden_questions.csv</code> (IDs 6-11):</p>
+  <table>
+    <thead><tr><th>ID</th><th>Question</th><th>Expected</th><th>Tests</th></tr></thead>
+    <tbody>
+      <tr><td>6</td><td>What is your return policy?</td><td>Answer</td><td>FAQ path, no product clarification</td></tr>
+      <tr><td>7</td><td>How do I reset my password?</td><td>Answer</td><td>FAQ path (not confused with hardware reset)</td></tr>
+      <tr><td>8</td><td>Where is my order?</td><td>Answer</td><td>Order tracking FAQ</td></tr>
+      <tr><td>9</td><td>How long does shipping take?</td><td>Answer</td><td>Shipping FAQ</td></tr>
+      <tr><td>10</td><td>How do I get a refund?</td><td>Answer</td><td>Refund FAQ</td></tr>
+      <tr><td>11</td><td>How do I cancel my subscription?</td><td>Answer</td><td>Cancellation FAQ</td></tr>
+    </tbody>
+  </table>
+
+  <div class="card green-left">
+    <h4>Why This Matters</h4>
+    <p>This integration demonstrates the architecture's extensibility. Adding a new knowledge domain required: (1) a new ChromaDB collection, (2) a new retriever method, (3) a new routing branch in the chatbot, (4) an updated assessor prompt. No existing code was modified — only extended. This is exactly the "add a new domain" extensibility point mentioned in Section 12.3.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SECTION 12: ROADMAP -->
+<!-- ============================================================ -->
+<section id="roadmap" class="page-break">
+  <h2><span class="num">12.</span> Roadmap & Future Work</h2>
+  <p class="lead">What's built, what's next, and what's deliberately deferred.</p>
+
+  <h3>12.1 What's Built and Running</h3>
+  <ul>
+    <li>✅ Core RAG pipeline with Gemini + ChromaDB</li>
+    <li>✅ Dual-path domain routing (product support + general support)</li>
+    <li>✅ Four-tier evidence retrieval with similarity gating</li>
+    <li>✅ Multi-turn clarification via conversation assessment</li>
+    <li>✅ Hardware-version-aware metadata filtering</li>
+    <li>✅ Zero-hallucination guard with safe escalation</li>
+    <li>✅ Google Search grounding fallback</li>
+    <li>✅ Self-improving memory via user feedback</li>
+    <li>✅ General support FAQ integration (686 Q&A pairs)</li>
+    <li>✅ Dark charcoal chat UI with persistent sessions</li>
+    <li>✅ Live document ingestion (PDF, TXT, MD, URLs)</li>
+    <li>✅ Unit tests (11 passing) + golden question evaluation runner</li>
+    <li>✅ Demo product loader (TP-Link Archer AX21)</li>
+  </ul>
+
+  <h3>12.2 Next Priorities (Ranked by Impact)</h3>
+  <table>
+    <thead><tr><th>#</th><th>Priority</th><th>What</th><th>Impact</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td>High</td>
+        <td><strong>Token-by-Token Streaming</strong> — Use <code>st.write_stream</code> + Gemini's <code>generate_content_stream</code> to render responses as they're generated</td>
+        <td>Dramatically reduces perceived latency</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>High</td>
+        <td><strong>Memory Poisoning Defense</strong> — LLM judge + semantic consistency check + citation validation before promoting to memory</td>
+        <td>Prevents adversarial or incorrect memory entries</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>Medium</td>
+        <td><strong>Agentic Router</strong> — Replace static branching with ReAct-style tool-calling agent</td>
+        <td>Dynamic decisions instead of fixed cascade</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>Medium</td>
+        <td><strong>Visual Troubleshooting</strong> — Photo uploads for LED patterns, port damage, model stickers. Gemini Vision + OCR</td>
+        <td>Multi-modal support, hardware identification</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>Low</td>
+        <td><strong>RAGAS Evaluation Pipeline</strong> — Continuous faithfulness, answer relevancy, context precision metrics</td>
+        <td>Automated quality tracking over time</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>12.2 What Was Recently Added</h3>
+  <div class="card green-left">
+    <h4>General Support FAQ Integration (Just Completed)</h4>
+    <p>The system now handles two domains: hardware troubleshooting AND general customer support (account, orders, returns, shipping, refunds). Key additions:</p>
+    <ul>
+      <li><strong>New ChromaDB collection:</strong> <code>general_support_faqs</code> with 686 curated Q&A pairs from MakTek (200) + Bitext (486 sampled)</li>
+      <li><strong>Domain classification:</strong> The conversation assessor now outputs <code>question_domain</code> and routes to the appropriate pipeline</li>
+      <li><strong>Auto-indexing:</strong> FAQ data is indexed into ChromaDB on app startup via <code>ensure_faq_index()</code></li>
+      <li><strong>Data pipeline:</strong> <code>prepare_faq_data.py</code> downloads, normalizes, and samples from HuggingFace datasets</li>
+      <li><strong>Dual escalation:</strong> Hardware questions escalate to manufacturer support; general questions escalate to customer support</li>
+      <li><strong>6 new test cases:</strong> Added to <code>golden_questions.csv</code> covering return policy, password reset, order tracking, shipping, refunds, cancellation</li>
+    </ul>
+  </div>
+
+  <h3>12.3 Architecture Extensibility</h3>
+  <p>Every component is designed to be swappable independently:</p>
+  <ul>
+    <li>Different LLM? Swap the <code>google-genai</code> calls in <code>gemini.py</code>.</li>
+    <li>Different vector store? Swap the <code>chromadb.PersistentClient</code> in <code>retriever.py</code> / <code>indexer.py</code>.</li>
+    <li>Different frontend? The <code>rag/</code> module is a pure Python library — <code>ProductAssistant.answer()</code> takes a string and returns a <code>ChatResult</code>.</li>
+    <li>Add a reranker? Insert between retrieval and generation in <code>chatbot.py</code>.</li>
+    <li>Add a new domain? Create a new ChromaDB collection, add a retriever method, and route in the assessor.</li>
+  </ul>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <p><strong>Intelligent Product Support Assistant</strong> — Complete Study Guide</p>
+  <p>Prepared for presentation. Generated with AI assistance.</p>
+  <p style="margin-top: 0.5rem;">To save as PDF: <strong>Ctrl/Cmd + P → Save as PDF</strong></p>
+</footer>
+
+</body>
+</html>

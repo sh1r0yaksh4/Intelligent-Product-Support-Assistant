@@ -3,7 +3,7 @@ from __future__ import annotations
 import chromadb
 from chromadb.config import Settings
 
-from .config import CHROMA_DIR, DOCUMENT_COLLECTION, MEMORY_COLLECTION, TOP_K
+from .config import CHROMA_DIR, DOCUMENT_COLLECTION, FAQ_COLLECTION, FAQ_TOP_K, MEMORY_COLLECTION, TOP_K
 from .gemini import embed_texts
 from .models import RetrievedChunk
 
@@ -66,6 +66,28 @@ class Retriever:
             result = collection.query(
                 query_embeddings=[embedding], n_results=top_k, where={"product_id": product_id}
             )
+            documents = result.get("documents", [[]])[0]
+            metadatas = result.get("metadatas", [[]])[0]
+            distances = result.get("distances", [[]])[0]
+            return [
+                RetrievedChunk(text=text, metadata=metadata, score=max(0.0, 1 - distance))
+                for text, metadata, distance in zip(documents, metadatas, distances)
+            ]
+        except Exception:
+            return []
+
+    def retrieve_faq(self, query: str, top_k: int = FAQ_TOP_K) -> list[RetrievedChunk]:
+        """Query general_support_faqs collection — no product/version filtering."""
+        try:
+            collection = self.client.get_collection(FAQ_COLLECTION)
+        except Exception:
+            return []
+        if collection.count() == 0:
+            return []
+
+        embedding = embed_texts([query], "RETRIEVAL_QUERY")[0]
+        try:
+            result = collection.query(query_embeddings=[embedding], n_results=top_k)
             documents = result.get("documents", [[]])[0]
             metadatas = result.get("metadatas", [[]])[0]
             distances = result.get("distances", [[]])[0]
