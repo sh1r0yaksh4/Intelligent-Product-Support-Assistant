@@ -19,8 +19,8 @@ for mod_name in list(sys.modules.keys()):
             pass
 
 from rag.chatbot import ProductAssistant
-from rag.config import CHROMA_DIR, DATA_DIR, FAQ_COLLECTION, FAQ_DIR, slugify
-from rag.gemini import GeminiUnavailable
+from rag.config import CHROMA_DIR, DATA_DIR, FAQ_COLLECTION, FAQ_DIR, PRODUCTS_DIR, slugify
+from rag.grok import GeminiUnavailable, GrokUnavailable
 from rag.indexer import ProductIndex
 from rag.interactions import record_interaction, submit_feedback
 from rag.loader import load_file
@@ -479,12 +479,12 @@ def save_conversations(chats: list[dict]) -> None:
 
 
 # --- Assistant Resource ---
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def get_assistant() -> ProductAssistant:
     return ProductAssistant()
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def ensure_faq_index() -> bool:
     """Index general support FAQs into ChromaDB if the collection is empty."""
     faq_path = FAQ_DIR / "general_support_faqs.jsonl"
@@ -539,15 +539,69 @@ with st.sidebar:
 
     # New Chat Button
     if st.button("+ New Chat", use_container_width=True, type="primary"):
-        if current_chat["messages"]:
-            st.session_state.current_chat = {
-                "id": str(uuid.uuid4())[:8],
-                "title": "New Chat",
-                "active_product": None,
-                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "messages": [],
-            }
+        prev_active_prod = current_chat.get("active_product")
+        st.session_state.current_chat = {
+            "id": str(uuid.uuid4())[:8],
+            "title": "New Chat",
+            "active_product": prev_active_prod,
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "messages": [],
+        }
+        st.rerun()
+
+    st.markdown("---")
+
+    # Product Workspace Selector
+    existing_products = []
+    if PRODUCTS_DIR.exists():
+        for p in sorted(PRODUCTS_DIR.iterdir()):
+            if p.is_dir() and not p.name.startswith("."):
+                existing_products.append(p.name)
+
+    product_options = ["Auto-Detect / General"] + [
+        p.replace("-", " ").replace("_", " ").title() for p in existing_products
+    ]
+
+    current_prod_idx = 0
+    active_prod = current_chat.get("active_product")
+    if active_prod:
+        active_title = active_prod.replace("-", " ").replace("_", " ").title()
+        if active_title in product_options:
+            current_prod_idx = product_options.index(active_title)
+
+    st.markdown("<div style='font-size: 0.72rem; font-weight: 600; opacity: 0.6; text-transform: uppercase; margin-bottom: 0.4rem;'>Product Workspace</div>", unsafe_allow_html=True)
+    selected_prod_label = st.selectbox(
+        "Active Product",
+        options=product_options,
+        index=current_prod_idx,
+        key="sidebar_product_selector",
+        label_visibility="collapsed",
+    )
+    if selected_prod_label != "Auto-Detect / General":
+        current_chat["active_product"] = selected_prod_label
+    else:
+        current_chat["active_product"] = None
+
+    # Upload Manual (Simple & Instant)
+    st.markdown("<div style='font-size: 0.72rem; font-weight: 600; opacity: 0.6; text-transform: uppercase; margin-top: 0.8rem; margin-bottom: 0.4rem;'>Upload Manual / Document</div>", unsafe_allow_html=True)
+    uploaded_file = st.file_uploader(
+        "Upload manual (PDF / TXT / MD)",
+        type=["pdf", "txt", "md"],
+        key="sidebar_manual_upload",
+        label_visibility="collapsed",
+    )
+    if uploaded_file and st.session_state.get("_last_uploaded_file") != uploaded_file.name:
+        target_name = Path(uploaded_file.name).stem.replace("-", " ").replace("_", " ").title()
+        pid = slugify(target_name)
+        save_upload(pid, uploaded_file.name, uploaded_file.getvalue())
+        try:
+            rebuild_product_index(target_name)
+            current_chat["active_product"] = target_name
+            st.session_state["_last_uploaded_file"] = uploaded_file.name
+            st.toast(f"📄 Active: {target_name}")
             st.rerun()
+        except Exception as e:
+            st.error(f"Indexing error: {e}")
 
     st.markdown("---")
 
@@ -591,11 +645,24 @@ with st.sidebar:
 
 # --- Main Chat Area ---
 
+# Show Active Product Badge if set
+if current_chat.get("active_product"):
+    col_badge, col_clear = st.columns([8.5, 1.5])
+    with col_badge:
+        st.markdown(
+            f"<div style='background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 6px 12px; margin-bottom: 8px; font-size: 0.82rem; color: #38bdf8;'>📦 <b>Active Document:</b> {html.escape(current_chat['active_product'])}</div>",
+            unsafe_allow_html=True,
+        )
+    with col_clear:
+        if st.button("Clear", key="clear_active_prod", use_container_width=True):
+            current_chat["active_product"] = None
+            st.rerun()
+
 # Empty state
 if not current_chat["messages"]:
     st.markdown(
         """
-        <div style="text-align: center; padding-top: 16vh; padding-bottom: 0.75rem;">
+        <div style="text-align: center; padding-top: 14vh; padding-bottom: 0.75rem;">
             <h2 style="font-weight: 500; font-size: 1.85rem; letter-spacing: -0.02em; margin-bottom: 0.25rem;">
                 What product can I help you with?
             </h2>
@@ -603,13 +670,6 @@ if not current_chat["messages"]:
         """,
         unsafe_allow_html=True,
     )
-
-    # Clean documentation popup without any fluff
-    col_l, col_m, col_r = st.columns([1, 2, 1])
-    with col_m:
-        with st.popover("+ Add documentation", use_container_width=True):
-            st.file_uploader("Upload manual", type=["pdf", "txt", "md"], key="pending_upload", label_visibility="collapsed")
-            st.text_input("Documentation URL", placeholder="Paste support / FAQ URL...", key="pending_url", label_visibility="collapsed")
 
 else:
     # Render Conversation Messages (User right, Model left in box)
@@ -680,9 +740,9 @@ else:
 # Chat Input
 user_input = st.chat_input("Ask a product question or describe an issue...")
 if user_input:
-    # Auto-index documentation if uploaded or provided in the popover
-    uploaded_doc = st.session_state.get("pending_upload")
-    url_doc = (st.session_state.get("pending_url") or "").strip()
+    # Auto-index documentation if uploaded or provided
+    uploaded_doc = st.session_state.get("pending_upload") or st.session_state.get("sidebar_manual_upload")
+    url_doc = (st.session_state.get("pending_url") or st.session_state.get("sidebar_doc_url") or "").strip()
 
     if uploaded_doc or url_doc:
         doc_name = current_chat.get("active_product") or (Path(uploaded_doc.name).stem.replace("-", " ").replace("_", " ").title() if uploaded_doc else "Attached Product")
@@ -746,7 +806,7 @@ if user_input:
                 save_conversations(st.session_state.conversations)
                 st.rerun()
 
-            except GeminiUnavailable as exc:
+            except (GrokUnavailable, GeminiUnavailable) as exc:
                 st.error(str(exc))
             except Exception as exc:
                 st.error(f"Could not complete request: {exc}")

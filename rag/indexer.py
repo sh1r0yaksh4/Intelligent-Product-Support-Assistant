@@ -7,7 +7,7 @@ import chromadb
 from chromadb.config import Settings
 
 from .config import CHROMA_DIR, DOCUMENT_COLLECTION, FAQ_COLLECTION, MEMORY_COLLECTION, ensure_directories
-from .gemini import embed_texts
+from .grok import embed_texts
 from .models import DocumentChunk
 
 

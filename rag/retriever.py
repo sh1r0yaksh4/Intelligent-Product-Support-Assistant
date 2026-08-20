@@ -4,7 +4,7 @@ import chromadb
 from chromadb.config import Settings
 
 from .config import CHROMA_DIR, DOCUMENT_COLLECTION, FAQ_COLLECTION, FAQ_TOP_K, MEMORY_COLLECTION, TOP_K
-from .gemini import embed_texts
+from .grok import embed_texts
 from .models import RetrievedChunk
 
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import re
+
 from .config import MIN_DOCUMENT_SIMILARITY, MIN_FAQ_SIMILARITY, SUPPORT_URL, slugify
-from .gemini import (
+from .grok import (
     assess_conversation,
     generate_grounded_answer,
     identify_product_structured,
@@ -21,8 +23,15 @@ If the FAQ evidence does not cover the question, respond exactly with NOT_FOUND:
 Do not invent policies, deadlines, or procedures not present in the evidence."""
 
 
-def _context(chunks: list[RetrievedChunk], memory_chunks: list[RetrievedChunk] | None = None) -> str:
+def _context(
+    chunks: list[RetrievedChunk],
+    memory_chunks: list[RetrievedChunk] | None = None,
+    visual_info: str = "",
+) -> str:
     parts = []
+    if visual_info:
+        parts.append(f"=== Visual Hardware Inspection Finding ===\n{visual_info}")
+
     if memory_chunks:
         parts.append("=== Approved Historical Memory ===")
         for chunk in memory_chunks:
@@ -115,7 +124,7 @@ class ProductAssistant:
 
         # Step 1: Assess conversation — clarify, classify domain, or answer?
         assessment = assess_conversation(question, history_list, active_product, active_version)
-        if assessment.get("action") == "clarify" and assessment.get("clarification_question"):
+        if not active_product and assessment.get("action") == "clarify" and assessment.get("clarification_question"):
             return ChatResult(
                 answer=assessment["clarification_question"],
                 clarification_needed=True,
@@ -192,19 +201,29 @@ If you cannot find a clear, verified answer, begin your response exactly with NO
         product_id = slugify(product_name or "general")
 
         # Step 2: Formulate query
-        retrieval_query = self._standalone_query(question, history_list, product_name, hardware_version)
+        is_summary_request = bool(re.search(
+            r"\b(summary|summarize|overview|spec|specs|specification|specifications|feature|features|detail|details|info|information|explain|describe|what is this|about|about it|help)\b",
+            question,
+            re.I,
+        ))
+        if is_summary_request:
+            retrieval_query = f"{product_name or ''} overview introduction summary specifications features guide"
+        else:
+            retrieval_query = self._standalone_query(question, history_list, product_name, hardware_version)
 
         # Step 3: Local Document Vector Retrieval (Version-Aware)
         local_chunks = self.retriever.retrieve_documents(retrieval_query, product_id, hardware_version)
         memory_chunks = self.retriever.retrieve_approved_memory(retrieval_query, product_id, top_k=2)
 
         # Step 4: Relevance & Score Check
-        if local_chunks and local_chunks[0].score >= MIN_DOCUMENT_SIMILARITY:
-            prompt = f"""{SYSTEM_INSTRUCTIONS}
+        if local_chunks and (local_chunks[0].score >= MIN_DOCUMENT_SIMILARITY or is_summary_request or active_product):
+            prompt = f"""You are an expert product support assistant.
+Answer the user's question clearly, thoroughly, and helpfully using the provided documentation evidence.
+Synthesize relevant details, specifications, regulatory information, features, steps, gestures, settings, and procedures found in the evidence.
+Use clear bullet points and bold headings for easy readability.
 {style_instruction}
 Product: {product_name or 'unknown'}
 Hardware Version: {hardware_version or 'unspecified'}
-Conversation context: {history_list[-4:]}
 
 Evidence:
 {_context(local_chunks, memory_chunks)}
@@ -212,15 +231,20 @@ Evidence:
 Question: {question}
 Answer:"""
             response = generate_grounded_answer(prompt)
-            if response.startswith("NOT_FOUND:"):
+            clean_answer = response.removeprefix("NOT_FOUND:").strip()
+            if clean_answer and not response.startswith("NOT_FOUND:"):
+                return ChatResult(
+                    answer=clean_answer,
+                    citations=_document_citations(local_chunks),
+                    product_name=product_name,
+                    hardware_version=hardware_version,
+                    used_memory=bool(memory_chunks),
+                )
+            if active_product:
                 return _escalation(product_name, hardware_version)
-            return ChatResult(
-                answer=response,
-                citations=_document_citations(local_chunks),
-                product_name=product_name,
-                hardware_version=hardware_version,
-                used_memory=bool(memory_chunks),
-            )
+
+        if active_product:
+            return _escalation(product_name, hardware_version)
 
         # Step 5: Web Search Grounding Fallback
         research_prompt = f"""Research this product-support question using Google Search grounding.
