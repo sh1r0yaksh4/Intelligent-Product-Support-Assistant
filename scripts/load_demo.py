@@ -1,8 +1,7 @@
-"""Load bundled example product documents into the local index for demo purposes."""
+"""Load bundled example product documents into the local index and database for demo purposes."""
 
 from __future__ import annotations
 
-import shutil
 import sys
 from pathlib import Path
 
@@ -13,56 +12,75 @@ try:
 except ImportError:
     print("\n[Error] Dependencies not found in current Python environment.")
     print("Please activate the virtual environment first:")
-    print("    source .venv/bin/activate")
+    print("    .venv\\Scripts\\activate (Windows) or source .venv/bin/activate")
     print("Or run directly using:")
     print("    .venv/bin/python3 scripts/load_demo.py\n")
     sys.exit(1)
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT_DIR))
 
-from rag.config import slugify
-from rag.gemini import GeminiUnavailable
-from rag.indexer import ProductIndex
-from rag.loader import load_file
-from rag.sources import product_directory
+from rag.grok import GrokUnavailable
+from scripts.ingest_dataset import ingest_file
 
-EXAMPLES_DIR = Path(__file__).resolve().parents[1] / "data" / "examples"
-
-DEMO_PRODUCTS = [
-    {"name": "TP-Link Archer AX21", "file": "tp-link-archer-ax21.md"},
+DEMO_DATASETS = [
+    {
+        "name": "TP-Link Archer AX21",
+        "file": ROOT_DIR / "data" / "products" / "tp-link-archer-ax21" / "tp-link-archer-ax21.md",
+        "manufacturer": "TP-Link",
+        "model": "Archer AX21",
+    },
+    {
+        "name": "Sony WH-1000XM5",
+        "file": ROOT_DIR / "data" / "products" / "sony-wh-1000xm5" / "manual.md",
+        "manufacturer": "Sony",
+        "model": "WH-1000XM5",
+    },
+    {
+        "name": "Ecobee Smart Thermostat Premium",
+        "file": ROOT_DIR / "data" / "products" / "ecobee-smart-thermostat" / "manual.md",
+        "manufacturer": "Ecobee",
+        "model": "Smart Thermostat Premium",
+    },
+    {
+        "name": "General Electronics & Networking FAQs",
+        "file": ROOT_DIR / "data" / "products" / "general-support-faqs" / "faqs.csv",
+        "manufacturer": "General",
+        "model": "Support FAQs",
+    },
 ]
 
 
 def main() -> None:
-    if not EXAMPLES_DIR.exists():
-        print(f"Examples directory not found: {EXAMPLES_DIR}")
-        sys.exit(1)
+    print("\n=== Initializing Demo Product Knowledge Base ===")
+    total_chunks = 0
 
-    for product in DEMO_PRODUCTS:
-        name = product["name"]
-        product_id = slugify(name)
-        source_path = EXAMPLES_DIR / product["file"]
+    for item in DEMO_DATASETS:
+        name = item["name"]
+        file_path = item["file"]
 
-        if not source_path.exists():
-            print(f"  Skipping {name}: {source_path.name} not found.")
+        if not file_path.exists():
+            print(f"  [Skip] {name}: File {file_path.name} not found.")
             continue
 
-        # Copy into the product workspace
-        dest_dir = product_directory(product_id)
-        dest_path = dest_dir / source_path.name
-        shutil.copy2(source_path, dest_path)
-
-        # Chunk and index
-        chunks = load_file(dest_path, product_id)
         try:
-            count = ProductIndex().index_documents(chunks, product_id)
-            print(f"  Indexed {count} chunks for {name}.")
-        except GeminiUnavailable as exc:
+            count = ingest_file(
+                file_path=file_path,
+                product_name=name,
+                manufacturer=item["manufacturer"],
+                model=item["model"],
+            )
+            print(f"  [Indexed] {name}: {count} chunks indexed.")
+            total_chunks += count
+        except GrokUnavailable as exc:
             print(f"\n[Error] {exc}")
-            print("Set your GEMINI_API_KEY in .env before indexing documents.\n")
+            print("Set your GROK_API_KEY in .env before indexing documents.\n")
             sys.exit(1)
+        except Exception as exc:
+            print(f"  [Error] Failed to index {name}: {exc}")
 
-    print("Demo products loaded. Run: streamlit run app.py")
+    print(f"\nDemo knowledge base initialized ({total_chunks} total chunks indexed).")
+    print("Run UI with: streamlit run app.py\n")
 
 
 if __name__ == "__main__":

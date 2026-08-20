@@ -14,6 +14,19 @@ OVERLAP_WORDS = 50
 
 
 def clean_text(text: str) -> str:
+    # Replace non-ascii bullet characters with standard ASCII dashes
+    text = (
+        text.replace("\u25cf", "- ")
+        .replace("\u2022", "- ")
+        .replace("\u25cb", "- ")
+        .replace("\u25a0", "- ")
+        .replace("\u2013", "-")
+        .replace("\u2014", "-")
+        .replace("\u2018", "'")
+        .replace("\u2019", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+    )
     return re.sub(r"\s+", " ", text).strip()
 
 
@@ -79,6 +92,15 @@ def _read_pdf(path: Path) -> list[tuple[str, str, int]]:
     return extracted
 
 
+def _detect_version_in_text(text: str) -> str:
+    """Extract hardware version (V1, V2, Rev A) from heading or text if present."""
+    match = re.search(r"\b(V\d+(?:\.\d+)?|Rev\s*[A-Z0-9]+)\b", text, re.I)
+    if match:
+        v = match.group(1).upper()
+        return re.sub(r"\.0+$", "", v)
+    return ""
+
+
 def load_file(
     path: Path,
     product_id: str,
@@ -121,9 +143,24 @@ def load_file(
     else:
         return []
 
-    for section, text, page in sections:
-        for index, part in enumerate(_chunk_words(text)):
+    for section, body, page in sections:
+        section_hw = hardware_version or _detect_version_in_text(section) or _detect_version_in_text(body[:100])
+        # Detect table of contents, index pages, or page number list pages
+        is_toc = (
+            (bool(re.search(r"\.{4,}|\bTable of contents\b", body, re.I)) and len(re.findall(r"\.{3,}", body)) >= 3)
+            or bool(re.search(r"^\s*Index\b", body, re.I))
+            or (page and page >= 68 and "c05633409" in path.name.lower())
+        )
+
+        for index, part in enumerate(_chunk_words(body)):
             metadata = dict(base_metadata)
-            metadata.update({"section": section, "page": page or "", "page_number": page or 0, "chunk_index": index})
+            metadata.update({
+                "section": section,
+                "hardware_version": section_hw,
+                "page": page or "",
+                "page_number": page or 0,
+                "chunk_index": index,
+                "is_toc": is_toc,
+            })
             chunks.append(DocumentChunk(text=part, metadata=metadata))
     return chunks

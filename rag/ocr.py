@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
+
+from .grok import analyze_hardware_image_grok
 
 logger = logging.getLogger(__name__)
 
 
 def extract_ocr_text_from_pdf(path: Path) -> list[tuple[int, str]]:
-    """Extract text from scanned PDF using pytesseract or Gemini Vision fallback if native libraries exist.
+    """Extract text from scanned PDF using pytesseract or fallback if native libraries exist.
     Returns list of (page_number, extracted_text) tuples. Never crashes application on missing OCR binaries.
     """
     results: list[tuple[int, str]] = []
@@ -24,3 +27,10 @@ def extract_ocr_text_from_pdf(path: Path) -> list[tuple[int, str]]:
         logger.warning(f"Native OCR fallback unavailable for {path.name}: {exc}")
 
     return results
+
+
+def analyze_hardware_image(image_bytes: bytes, mime_type: str = "image/jpeg") -> dict[str, Any]:
+    """Inspect a hardware photo (label sticker, LED indicators, ports) using Grok Vision.
+    Extracts manufacturer, model, hardware revision, serial number, LED status, and physical issue summary.
+    """
+    return analyze_hardware_image_grok(image_bytes, mime_type)

@@ -19,7 +19,7 @@ except ImportError:
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from rag.config import slugify
-from rag.gemini import GeminiUnavailable
+from rag.grok import GrokUnavailable
 from rag.indexer import ProductIndex
 from rag.loader import load_file
 from rag.sources import product_directory, source_urls
@@ -37,9 +37,9 @@ def main() -> None:
     try:
         count = ProductIndex().index_documents(chunks, product_id)
         print(f"Indexed {count} chunks for {args.product}.")
-    except GeminiUnavailable as exc:
+    except GrokUnavailable as exc:
         print(f"\n[Error] {exc}")
-        print("Set your GEMINI_API_KEY in .env before indexing documents.\n")
+        print("Set your GROK_API_KEY in .env before indexing documents.\n")
         sys.exit(1)
 
 
